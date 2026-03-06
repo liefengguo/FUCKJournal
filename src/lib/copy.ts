@@ -198,7 +198,7 @@ const copy: Localized<SiteCopy> = {
       contactLabel: "Contact",
       blurb:
         "A bilingual journal of universality, complexity, knowledge and the structures of human life.",
-      buildNote: "Built for Vercel, static by default.",
+      buildNote: "Edited for clarity, designed for slow reading.",
     },
   },
   zh: {
@@ -333,7 +333,7 @@ const copy: Localized<SiteCopy> = {
       sitemapLabel: "站点地图",
       contactLabel: "联系",
       blurb: "一份关于普遍性、复杂性、知识以及人类生活结构的双语期刊。",
-      buildNote: "面向 Vercel 部署，默认静态生成。",
+      buildNote: "为清晰而编辑，为缓慢阅读而设计。",
     },
   },
 };
