@@ -6,7 +6,7 @@ export const siteConfig = {
   fullName: "Foundations of Universality, Complexity and Knowledge",
   description:
     "F.U.C.K Journal is a bilingual interdisciplinary publication on universality, complexity, knowledge, systems, culture, uncertainty and human meaning.",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://fuck-journal.vercel.app",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://fuckjournal.org",
   email: "editorial@fuckjournal.org",
   social: {
     x: "https://x.com",

@@ -12,7 +12,6 @@ A bilingual academic journal website built with Next.js 14, TypeScript, Tailwind
 - shadcn/ui component patterns
 - MDX content from `content/articles`
 - `next-intl` i18n with `/en` and `/zh`
-- Production-ready static rendering
 - RSS, sitemap, robots and OG/Twitter metadata routes
 
 ## Scripts
@@ -68,6 +67,4 @@ content/
 public/
 ```
 
-## Deployment
-
-This project builds cleanly with `npm run build` and is ready for production deployment.
+This project builds cleanly with `npm run build`.
