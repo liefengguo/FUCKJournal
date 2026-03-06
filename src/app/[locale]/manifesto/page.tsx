@@ -35,7 +35,7 @@ export default function ManifestoPage({ params }: ManifestoPageProps) {
   return (
     <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-12">
       <div className="max-w-4xl">
-        <p className="section-kicker">Manifesto</p>
+        <p className="section-kicker">{locale === "zh" ? "宣言" : "Manifesto"}</p>
         <h1 className="mt-4 font-display text-5xl sm:text-6xl">
           {copy.manifesto.title}
         </h1>

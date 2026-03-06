@@ -5,14 +5,14 @@
   <circle cx="790" cy="1008" r="154" fill="#8D6A2D" fill-opacity="0.14"/>
   <line x1="112" y1="152.5" x2="848" y2="152.5" stroke="#2A2220" stroke-opacity="0.18"/>
   <line x1="112" y1="1048.5" x2="848" y2="1048.5" stroke="#2A2220" stroke-opacity="0.18"/>
-  <text x="112" y="118" fill="#6A625D" font-family="Georgia, serif" font-size="28" letter-spacing="10">EDITORIAL RESEARCH JOURNAL</text>
-  <text x="112" y="420" fill="#1F1716" font-family="Georgia, serif" font-size="132" font-weight="700">FUCK</text>
-  <text x="112" y="532" fill="#1F1716" font-family="Georgia, serif" font-size="108" font-weight="700">Journal</text>
-  <text x="114" y="616" fill="#655B55" font-family="Georgia, serif" font-size="34">Foundations of Understanding,</text>
-  <text x="114" y="664" fill="#655B55" font-family="Georgia, serif" font-size="34">Culture and Knowledge</text>
-  <rect x="112" y="760" width="736" height="2" fill="#2A2220" fill-opacity="0.12"/>
-  <text x="112" y="822" fill="#1F1716" font-family="Georgia, serif" font-size="54">Issue 01</text>
-  <text x="112" y="892" fill="#655B55" font-family="Georgia, serif" font-size="32">The Study of Mess:</text>
-  <text x="112" y="936" fill="#655B55" font-family="Georgia, serif" font-size="32">loneliness, ritual, identity</text>
-  <text x="112" y="1098" fill="#6A625D" font-family="Georgia, serif" font-size="24" letter-spacing="8">FUCKJOURNAL.ORG</text>
+  <text x="112" y="118" fill="#6A625D" font-family="Georgia, serif" font-size="28" letter-spacing="10">INTERDISCIPLINARY JOURNAL OF IDEAS</text>
+  <text x="112" y="392" fill="#1F1716" font-family="Georgia, serif" font-size="116" font-weight="700" letter-spacing="22">F.U.C.K</text>
+  <text x="128" y="496" fill="#5B534F" font-family="Georgia, serif" font-size="100" font-style="italic">Journal</text>
+  <text x="114" y="592" fill="#655B55" font-family="Georgia, serif" font-size="34">Foundations of Universality,</text>
+  <text x="114" y="640" fill="#655B55" font-family="Georgia, serif" font-size="34">Complexity and Knowledge</text>
+  <rect x="112" y="744" width="736" height="2" fill="#2A2220" fill-opacity="0.12"/>
+  <text x="112" y="806" fill="#1F1716" font-family="Georgia, serif" font-size="54">Issue 01</text>
+  <text x="112" y="880" fill="#655B55" font-family="Georgia, serif" font-size="32">Life, Systems, Uncertainty</text>
+  <text x="112" y="924" fill="#655B55" font-family="Georgia, serif" font-size="32">Essays on culture, society and meaning</text>
+  <text x="112" y="1098" fill="#6A625D" font-family="Georgia, serif" font-size="24" letter-spacing="8">F.U.C.K JOURNAL</text>
 </svg>

@@ -1,6 +1,6 @@
-# FUCK Journal
+# F.U.C.K Journal
 
-F.U.C.K = Foundations of Understanding, Culture and Knowledge
+F.U.C.K = Foundations of Universality, Complexity and Knowledge
 
 A bilingual academic journal website built with Next.js 14, TypeScript, Tailwind CSS, shadcn/ui-style components, MDX and `next-intl`.
 

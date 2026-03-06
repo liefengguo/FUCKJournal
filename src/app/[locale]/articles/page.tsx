@@ -37,7 +37,7 @@ export default function ArticlesPage({ params }: ArticlesPageProps) {
   return (
     <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-12">
       <div className="max-w-3xl">
-        <p className="section-kicker">Archive</p>
+        <p className="section-kicker">{locale === "zh" ? "档案" : "Archive"}</p>
         <h1 className="mt-4 font-display text-5xl sm:text-6xl">
           {copy.articles.title}
         </h1>

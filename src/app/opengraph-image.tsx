@@ -1,5 +1,7 @@
 import { ImageResponse } from "next/og";
 
+import { siteConfig } from "@/lib/site";
+
 export const size = {
   width: 1200,
   height: 630,
@@ -54,14 +56,14 @@ export default function OpenGraphImage() {
             textTransform: "uppercase",
           }}
         >
-          Editorial Research Journal
+          Interdisciplinary Journal of Ideas
         </div>
         <div
           style={{
             position: "relative",
             display: "flex",
             flexDirection: "column",
-            gap: "22px",
+            gap: "10px",
           }}
         >
           <div
@@ -69,12 +71,23 @@ export default function OpenGraphImage() {
               fontSize: 92,
               lineHeight: 0.95,
               fontWeight: 700,
+              letterSpacing: "0.24em",
             }}
           >
-            FUCK Journal
+            F.U.C.K
+          </div>
+          <div
+            style={{
+              paddingLeft: "18px",
+              fontSize: 76,
+              lineHeight: 0.95,
+              color: "#5f5550",
+            }}
+          >
+            Journal
           </div>
           <div style={{ fontSize: 32, lineHeight: 1.35, maxWidth: "880px" }}>
-            Foundations of Understanding, Culture and Knowledge
+            {siteConfig.fullName}
           </div>
         </div>
         <div
@@ -86,7 +99,7 @@ export default function OpenGraphImage() {
             color: "#5f5550",
           }}
         >
-          Research on the beautiful chaos of being human.
+          A journal of ideas on systems, culture, and the human condition.
         </div>
       </div>
     ),

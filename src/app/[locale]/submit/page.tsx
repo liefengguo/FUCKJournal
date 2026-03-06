@@ -37,7 +37,7 @@ export default function SubmitPage({ params }: SubmitPageProps) {
   return (
     <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-12">
       <div className="max-w-3xl">
-        <p className="section-kicker">Submit</p>
+        <p className="section-kicker">{locale === "zh" ? "投稿" : "Submit"}</p>
         <h1 className="mt-4 font-display text-5xl sm:text-6xl">
           {copy.submit.title}
         </h1>

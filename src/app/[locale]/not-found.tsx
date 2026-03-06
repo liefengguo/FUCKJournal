@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import type { Locale } from "@/i18n/routing";
 import { LocaleLink } from "@/components/locale-link";
 import { Button } from "@/components/ui/button";
+import { siteConfig } from "@/lib/site";
 
 export default function NotFound() {
   const locale = useLocale() as Locale;
@@ -19,7 +20,7 @@ export default function NotFound() {
       </p>
       <Button asChild className="mt-8">
         <LocaleLink locale={locale} href="/">
-          FUCK Journal
+          {siteConfig.name}
         </LocaleLink>
       </Button>
     </div>

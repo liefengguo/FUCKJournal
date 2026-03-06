@@ -38,7 +38,7 @@ export default function CommunityPage({ params }: CommunityPageProps) {
   return (
     <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-12">
       <div className="max-w-3xl">
-        <p className="section-kicker">Community</p>
+        <p className="section-kicker">{locale === "zh" ? "社群" : "Community"}</p>
         <h1 className="mt-4 font-display text-5xl sm:text-6xl">
           {copy.community.title}
         </h1>

@@ -6,6 +6,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ArticleCard } from "@/components/article-card";
 import { AuthorCard } from "@/components/author-card";
 import { LocaleLink } from "@/components/locale-link";
+import { Wordmark } from "@/components/wordmark";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Locale } from "@/i18n/routing";
@@ -13,7 +14,7 @@ import { getFeaturedArticles, getLatestArticles } from "@/lib/articles";
 import { getCopy } from "@/lib/copy";
 import { getContributors } from "@/lib/contributors";
 import { createPageMetadata } from "@/lib/metadata";
-import { siteConfig } from "@/lib/site";
+import { getBrandMeanings, siteConfig } from "@/lib/site";
 
 type HomePageProps = {
   params: {
@@ -43,6 +44,7 @@ export default async function HomePage({ params }: HomePageProps) {
   const featured = getFeaturedArticles(locale);
   const latest = getLatestArticles(locale);
   const contributors = getContributors(locale);
+  const brandMeanings = getBrandMeanings(locale);
   const tCommon = await getTranslations("Common");
 
   return (
@@ -51,12 +53,23 @@ export default async function HomePage({ params }: HomePageProps) {
         <div className="hero-grid items-end">
           <div className="animate-fade-up">
             <p className="section-kicker">{copy.home.eyebrow}</p>
-            <h1 className="mt-6 font-display text-6xl leading-[0.9] tracking-tight sm:text-7xl lg:text-[7rem]">
-              FUCK Journal
-            </h1>
-            <p className="mt-5 max-w-3xl font-serif text-2xl leading-relaxed text-muted-foreground sm:text-3xl">
-              {siteConfig.fullName}
-            </p>
+            <h1 className="sr-only">{siteConfig.name}</h1>
+            <Wordmark locale={locale} size="hero" showSubtitle className="mt-6" />
+            <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {brandMeanings.map((item) => (
+                <div
+                  key={item.letter}
+                  className="rounded-[22px] border border-border/80 bg-background/70 px-4 py-3 backdrop-blur-sm"
+                >
+                  <p className="font-sans text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+                    {item.letter}
+                  </p>
+                  <p className="mt-2 font-serif text-lg leading-tight">
+                    {item.label}
+                  </p>
+                </div>
+              ))}
+            </div>
             <p className="mt-8 max-w-2xl font-serif text-2xl leading-relaxed text-foreground/90">
               {copy.home.tagline}
             </p>
@@ -81,40 +94,37 @@ export default async function HomePage({ params }: HomePageProps) {
               <div className="overflow-hidden rounded-[26px] border border-border/80">
                 <Image
                   src="/issue-cover.svg"
-                  alt="FUCK Journal cover artwork"
+                  alt="F.U.C.K Journal cover artwork"
                   width={960}
                   height={1200}
                   className="h-auto w-full"
                   priority
                 />
               </div>
-              <p className="section-kicker">Current Issue</p>
+              <p className="section-kicker">{copy.home.issueLabel}</p>
               <div className="space-y-3">
-                <p className="font-display text-4xl leading-none">
-                  The Study of Mess
-                </p>
+                <p className="font-display text-4xl leading-none">{copy.home.issueTitle}</p>
                 <p className="font-serif text-lg leading-relaxed text-muted-foreground">
-                  Essays on loneliness, attention, identity, ritual and the
-                  systems that organize inner life.
+                  {copy.home.issueBody}
                 </p>
               </div>
               <div className="grid gap-4 border-t border-border pt-6 sm:grid-cols-3">
                 <div>
                   <p className="font-display text-3xl">{featured.length}</p>
                   <p className="mt-1 font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                    Featured
+                    {copy.home.statFeatured}
                   </p>
                 </div>
                 <div>
                   <p className="font-display text-3xl">{latest.length}</p>
                   <p className="mt-1 font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                    Essays
+                    {copy.home.statEssays}
                   </p>
                 </div>
                 <div>
                   <p className="font-display text-3xl">2</p>
                   <p className="mt-1 font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                    Languages
+                    {copy.home.statLanguages}
                   </p>
                 </div>
               </div>
@@ -161,7 +171,7 @@ export default async function HomePage({ params }: HomePageProps) {
               </p>
               <Button asChild variant="outline">
                 <LocaleLink locale={locale} href="/manifesto">
-                  {locale === "zh" ? "阅读全文" : "Read the manifesto"}
+                  {copy.home.manifestoCta}
                 </LocaleLink>
               </Button>
             </div>

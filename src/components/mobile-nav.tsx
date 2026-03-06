@@ -6,6 +6,7 @@ import { useState } from "react";
 import type { Locale } from "@/i18n/routing";
 import { LocaleLink } from "@/components/locale-link";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { Wordmark } from "@/components/wordmark";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -16,6 +17,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { getBrandSubtitle } from "@/lib/site";
 
 type MobileNavProps = {
   locale: Locale;
@@ -35,10 +37,11 @@ export function MobileNav({ locale, items }: MobileNavProps) {
       </SheetTrigger>
       <SheetContent className="md:hidden">
         <SheetHeader className="max-w-xs">
-          <SheetTitle>F.U.C.K</SheetTitle>
-          <SheetDescription>
-            Foundations of Understanding, Culture and Knowledge
+          <SheetTitle className="sr-only">F.U.C.K Journal</SheetTitle>
+          <SheetDescription className="sr-only">
+            {getBrandSubtitle(locale)}
           </SheetDescription>
+          <Wordmark locale={locale} size="mobile" showSubtitle />
         </SheetHeader>
         <div className="mt-10 flex flex-col gap-2">
           {items.map((item) => (
