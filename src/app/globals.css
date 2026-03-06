@@ -1,0 +1,130 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 42 38% 96%;
+    --foreground: 12 14% 13%;
+    --card: 40 32% 97%;
+    --card-foreground: 12 14% 13%;
+    --popover: 40 32% 97%;
+    --popover-foreground: 12 14% 13%;
+    --primary: 357 54% 29%;
+    --primary-foreground: 42 40% 97%;
+    --secondary: 41 28% 90%;
+    --secondary-foreground: 12 14% 13%;
+    --muted: 40 23% 91%;
+    --muted-foreground: 18 8% 39%;
+    --accent: 40 36% 91%;
+    --accent-foreground: 12 14% 13%;
+    --border: 30 15% 82%;
+    --input: 30 15% 82%;
+    --ring: 357 54% 29%;
+    --journal-ink: 12 14% 13%;
+    --journal-paper: 42 38% 96%;
+    --journal-line: 31 11% 73%;
+    --journal-red: 357 54% 29%;
+    --journal-gold: 39 40% 42%;
+    color-scheme: light;
+  }
+
+  .dark {
+    --background: 18 17% 9%;
+    --foreground: 42 24% 92%;
+    --card: 18 15% 12%;
+    --card-foreground: 42 24% 92%;
+    --popover: 18 15% 12%;
+    --popover-foreground: 42 24% 92%;
+    --primary: 39 40% 54%;
+    --primary-foreground: 18 17% 9%;
+    --secondary: 18 10% 18%;
+    --secondary-foreground: 42 24% 92%;
+    --muted: 16 8% 18%;
+    --muted-foreground: 35 12% 70%;
+    --accent: 18 10% 18%;
+    --accent-foreground: 42 24% 92%;
+    --border: 18 7% 24%;
+    --input: 18 7% 24%;
+    --ring: 39 40% 54%;
+    --journal-ink: 42 24% 92%;
+    --journal-paper: 18 17% 9%;
+    --journal-line: 18 7% 24%;
+    --journal-red: 6 56% 52%;
+    --journal-gold: 39 40% 54%;
+    color-scheme: dark;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    background-image:
+      radial-gradient(circle at top left, rgba(114, 28, 36, 0.12), transparent 30%),
+      radial-gradient(circle at bottom right, rgba(138, 103, 44, 0.1), transparent 24%),
+      linear-gradient(to right, rgba(44, 34, 33, 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(44, 34, 33, 0.04) 1px, transparent 1px);
+    background-position:
+      0 0,
+      100% 100%,
+      0 0,
+      0 0;
+    background-size:
+      auto,
+      auto,
+      28px 28px,
+      28px 28px;
+  }
+
+  ::selection {
+    background: hsl(var(--journal-red) / 0.18);
+  }
+
+  a {
+    @apply transition-colors;
+  }
+}
+
+@layer components {
+  .page-shell {
+    @apply relative overflow-hidden;
+  }
+
+  .section-kicker {
+    @apply font-sans text-[11px] uppercase tracking-[0.32em] text-muted-foreground;
+  }
+
+  .section-title {
+    @apply font-display text-4xl leading-tight sm:text-5xl;
+  }
+
+  .hero-grid {
+    @apply grid gap-10 lg:grid-cols-[1.25fr_0.75fr];
+  }
+
+  .paper-panel {
+    @apply rounded-[32px] border border-border/80 bg-card/80 shadow-editorial backdrop-blur-sm;
+  }
+
+  .article-prose {
+    @apply max-w-prose space-y-8;
+  }
+
+  .article-prose > *:first-child {
+    @apply mt-0;
+  }
+
+  .article-prose > p:first-of-type::first-letter {
+    @apply float-left mr-3 font-display text-7xl leading-[0.9] text-journal-red dark:text-journal-gold;
+  }
+
+  .subheading-anchor {
+    @apply no-underline;
+  }
+}

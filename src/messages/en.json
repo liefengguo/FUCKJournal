@@ -1,0 +1,37 @@
+{
+  "Navigation": {
+    "home": "Home",
+    "articles": "Articles",
+    "manifesto": "Manifesto",
+    "submit": "Submit",
+    "community": "Community",
+    "about": "About",
+    "contact": "Contact"
+  },
+  "Common": {
+    "readArticles": "Read Articles",
+    "submitYourWork": "Submit Your Work",
+    "featuredArticles": "Featured Articles",
+    "latestEssays": "Latest Essays",
+    "community": "Community",
+    "readTime": "{time} read",
+    "tableOfContents": "Table of Contents",
+    "backToArticles": "Back to articles",
+    "translationAvailable": "Translation available",
+    "openSubmission": "Open submission draft",
+    "viewAllArticles": "Browse archive",
+    "notFoundTitle": "Page not found",
+    "notFoundBody": "The page you requested is not in this issue."
+  },
+  "LocaleSwitcher": {
+    "label": "Language",
+    "en": "English",
+    "zh": "中文"
+  },
+  "ThemeToggle": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  }
+}

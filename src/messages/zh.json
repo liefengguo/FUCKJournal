@@ -1,0 +1,37 @@
+{
+  "Navigation": {
+    "home": "首页",
+    "articles": "文章",
+    "manifesto": "宣言",
+    "submit": "投稿",
+    "community": "社群",
+    "about": "关于",
+    "contact": "联系"
+  },
+  "Common": {
+    "readArticles": "阅读文章",
+    "submitYourWork": "投稿",
+    "featuredArticles": "精选文章",
+    "latestEssays": "最新文章",
+    "community": "社群",
+    "readTime": "约 {time}",
+    "tableOfContents": "目录",
+    "backToArticles": "返回文章列表",
+    "translationAvailable": "可切换译文",
+    "openSubmission": "生成投稿邮件",
+    "viewAllArticles": "浏览档案库",
+    "notFoundTitle": "页面不存在",
+    "notFoundBody": "你访问的页面不在本期目录中。"
+  },
+  "LocaleSwitcher": {
+    "label": "语言",
+    "en": "English",
+    "zh": "中文"
+  },
+  "ThemeToggle": {
+    "label": "主题",
+    "light": "浅色",
+    "dark": "深色",
+    "system": "跟随系统"
+  }
+}
