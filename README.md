@@ -21,7 +21,31 @@ npm install
 npm run dev
 npm run build
 npm run lint
+npm run db:generate
+npm run db:seed
 ```
+
+## Environment
+
+Create a local env file before using the submission platform:
+
+```bash
+cp .env.example .env.local
+```
+
+Required values:
+
+- `DATABASE_URL`
+- `NEXTAUTH_URL`
+- `NEXTAUTH_SECRET`
+- `NEXT_PUBLIC_SITE_URL`
+
+Optional seed users:
+
+- `SEED_EDITOR_EMAIL`
+- `SEED_EDITOR_PASSWORD`
+- `SEED_ADMIN_EMAIL`
+- `SEED_ADMIN_PASSWORD`
 
 ## Content
 
@@ -46,15 +70,23 @@ featured:
 ## Structure
 
 ```text
+prisma/
+  schema.prisma
+  migrations/
 src/
   app/
     [locale]/
       articles/
       about/
       community/
+      dashboard/
+      editor/
       manifesto/
+      sign-in/
+      sign-up/
       submit/
       contact/
+    api/auth/
     rss.xml/
     sitemap.ts
     robots.ts

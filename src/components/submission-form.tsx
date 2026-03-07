@@ -1,120 +1,75 @@
-"use client";
-
-import { useState } from "react";
-import type { FormEvent } from "react";
-
+import { createDraftAction } from "@/app/actions/submissions";
+import { getServerAuthSession } from "@/auth";
 import type { Locale } from "@/i18n/routing";
+import { LocaleLink } from "@/components/locale-link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { getPlatformCopy } from "@/lib/platform-copy";
+import { isStaffRole } from "@/lib/submission-status";
 
 type SubmissionFormProps = {
   locale: Locale;
-  submitLabel: string;
-  uploadLabel: string;
-  uploadHint: string;
 };
 
-export function SubmissionForm({
-  locale,
-  submitLabel,
-  uploadLabel,
-  uploadHint,
-}: SubmissionFormProps) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [title, setTitle] = useState("");
-  const [abstractText, setAbstractText] = useState("");
-
-  const labels =
-    locale === "zh"
-      ? {
-          name: "姓名",
-          email: "邮箱",
-          title: "题目",
-          abstract: "摘要",
-        }
-      : {
-          name: "Name",
-          email: "Email",
-          title: "Title",
-          abstract: "Abstract",
-        };
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const subject = `[Submission] ${title || "Untitled manuscript"}`;
-    const body = [
-      `${labels.name}: ${name}`,
-      `${labels.email}: ${email}`,
-      `${labels.title}: ${title}`,
-      "",
-      `${labels.abstract}:`,
-      abstractText,
-      "",
-      uploadHint,
-    ].join("\n");
-
-    window.location.href = `mailto:guoliefeng@hotmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  }
+export async function SubmissionForm({ locale }: SubmissionFormProps) {
+  const session = await getServerAuthSession();
+  const copy = getPlatformCopy(locale).submitPortal;
+  const isStaff = session?.user ? isStaffRole(session.user.role) : false;
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>{submitLabel}</CardTitle>
+      <CardHeader className="space-y-4">
+        <CardTitle>{session?.user ? copy.memberTitle : copy.guestTitle}</CardTitle>
+        <p className="font-serif text-lg leading-relaxed text-muted-foreground">
+          {session?.user ? copy.memberBody : copy.guestBody}
+        </p>
       </CardHeader>
-      <CardContent>
-        <form className="space-y-5" onSubmit={handleSubmit}>
-          <div className="grid gap-5 md:grid-cols-2">
-            <div className="space-y-2">
-              <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                {labels.name}
-              </label>
-              <Input value={name} onChange={(event) => setName(event.target.value)} required />
+      <CardContent className="space-y-6">
+        {session?.user ? (
+          <>
+            <div className="rounded-[24px] border border-border/60 px-5 py-4">
+              <p className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                {copy.signedInAs}
+              </p>
+              <p className="mt-3 font-serif text-lg">
+                {session.user.name || session.user.email}
+              </p>
             </div>
-            <div className="space-y-2">
-              <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                {labels.email}
-              </label>
-              <Input
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                required
-              />
+            <div className="flex flex-col gap-3 sm:flex-row">
+              {!isStaff ? (
+                <form action={createDraftAction} className="w-full sm:w-auto">
+                  <input type="hidden" name="locale" value={locale} />
+                  <Button type="submit" size="lg" className="w-full sm:w-auto">
+                    {copy.createDraftLabel}
+                  </Button>
+                </form>
+              ) : null}
+              <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
+                <LocaleLink locale={locale} href={isStaff ? "/editor" : "/dashboard"}>
+                  {isStaff ? copy.editorLabel : copy.dashboardLabel}
+                </LocaleLink>
+              </Button>
             </div>
-          </div>
-          <div className="space-y-2">
-            <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
-              {labels.title}
-            </label>
-            <Input value={title} onChange={(event) => setTitle(event.target.value)} required />
-          </div>
-          <div className="space-y-2">
-            <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
-              {labels.abstract}
-            </label>
-            <Textarea
-              value={abstractText}
-              onChange={(event) => setAbstractText(event.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
-              {uploadLabel}
-            </label>
-            <Input type="file" disabled />
+          </>
+        ) : (
+          <>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button asChild size="lg" className="w-full sm:w-auto">
+                <LocaleLink locale={locale} href="/sign-in">
+                  {copy.signInLabel}
+                </LocaleLink>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
+                <LocaleLink locale={locale} href="/sign-up">
+                  {copy.signUpLabel}
+                </LocaleLink>
+              </Button>
+            </div>
             <p className="font-serif text-base leading-relaxed text-muted-foreground">
-              {uploadHint}
+              {copy.authNote}
             </p>
-          </div>
-          <Button type="submit" size="lg" className="w-full sm:w-auto">
-            {submitLabel}
-          </Button>
-        </form>
+          </>
+        )}
       </CardContent>
     </Card>
   );

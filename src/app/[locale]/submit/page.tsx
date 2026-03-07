@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { unstable_noStore as noStore } from "next/cache";
 
 import { setRequestLocale } from "next-intl/server";
 
@@ -14,6 +15,8 @@ type SubmitPageProps = {
     locale: Locale;
   };
 };
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -31,6 +34,7 @@ export async function generateMetadata({
 export default function SubmitPage({ params }: SubmitPageProps) {
   const { locale } = params;
 
+  noStore();
   setRequestLocale(locale);
   const copy = getCopy(locale);
 
@@ -79,12 +83,7 @@ export default function SubmitPage({ params }: SubmitPageProps) {
             </CardContent>
           </Card>
         </div>
-        <SubmissionForm
-          locale={locale}
-          submitLabel={copy.submit.submitLabel}
-          uploadHint={copy.submit.uploadHint}
-          uploadLabel={copy.submit.uploadLabel}
-        />
+        <SubmissionForm locale={locale} />
       </div>
     </div>
   );

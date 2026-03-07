@@ -106,7 +106,7 @@ const copy: Localized<SiteCopy> = {
     submit: {
       title: "Submit Your Work",
       intro:
-        "We welcome essays, research notes, reflective criticism and hybrid academic forms that engage universality, complexity, knowledge and the human condition with rigor and style.",
+        "We welcome essays, research notes, reflective criticism and hybrid academic forms that engage universality, complexity, knowledge and the human condition with rigor and style. Contributors now begin through a private submission workspace while the public journal remains unchanged.",
       guidelines: [
         "Send original work that has not been published elsewhere.",
         "Aim for clarity, argument and a distinct editorial voice.",
@@ -120,10 +120,10 @@ const copy: Localized<SiteCopy> = {
         "Identity, feeling and the human condition",
         "Knowledge, technology and forms of inquiry",
       ],
-      uploadLabel: "Upload paper",
+      uploadLabel: "Manuscript metadata",
       uploadHint:
-        "File upload is currently a placeholder for the next release. Use the email draft below for now.",
-      submitLabel: "Compose Submission Email",
+        "File storage will be connected in a later phase. The submission workspace already records manuscript metadata and draft state.",
+      submitLabel: "Open submission workspace",
     },
     community: {
       title: "Community",
@@ -244,7 +244,7 @@ const copy: Localized<SiteCopy> = {
     submit: {
       title: "投稿",
       intro:
-        "我们欢迎以严谨与风格同时回应普遍性、复杂性、知识与人类处境的随笔、研究札记、反思性评论及混合型学术写作。",
+        "我们欢迎以严谨与风格同时回应普遍性、复杂性、知识与人类处境的随笔、研究札记、反思性评论及混合型学术写作。投稿现已通过私有工作区完成，而公开期刊页面保持不变。",
       guidelines: [
         "请提交原创且未在其他平台发表过的作品。",
         "写作应兼具清晰度、论证能力与独特的编辑声音。",
@@ -258,9 +258,9 @@ const copy: Localized<SiteCopy> = {
         "身份、感受与人的处境",
         "知识、技术与研究形式",
       ],
-      uploadLabel: "上传论文",
-      uploadHint: "文件上传目前仍是占位功能。当前版本请先使用下方邮件草稿提交。",
-      submitLabel: "生成投稿邮件",
+      uploadLabel: "稿件元数据",
+      uploadHint: "文件存储会在后续阶段接入；当前投稿工作区已经可以保存稿件元数据与草稿状态。",
+      submitLabel: "打开投稿工作区",
     },
     community: {
       title: "社群",
