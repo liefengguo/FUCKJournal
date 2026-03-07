@@ -90,6 +90,46 @@ type Phase2Copy = {
     activeAssignmentsLabel: string;
     completedAssignmentsLabel: string;
   };
+  publication: {
+    queueTitle: string;
+    queueBody: string;
+    queueEmpty: string;
+    stateFilterLabel: string;
+    localeFilterLabel: string;
+    allStates: string;
+    allLocales: string;
+    openWorkspaceLabel: string;
+    workflowTitle: string;
+    workflowBody: string;
+    currentStateLabel: string;
+    metadataTitle: string;
+    metadataBody: string;
+    publicationTitleLabel: string;
+    publicationExcerptLabel: string;
+    publicationTagsLabel: string;
+    publicationTagsHint: string;
+    publicationLocaleLabel: string;
+    publicationLocaleHint: string;
+    publicationVolumeLabel: string;
+    publicationIssueLabel: string;
+    publicationYearLabel: string;
+    seoTitleLabel: string;
+    seoDescriptionLabel: string;
+    publicationReadyLabel: string;
+    publishedLabel: string;
+    publicationSlugLabel: string;
+    publishedAtLabel: string;
+    savePublicationLabel: string;
+    savingPublicationLabel: string;
+    exportTitle: string;
+    exportBody: string;
+    exportMarkdownLabel: string;
+    exportMarkdownHint: string;
+    exportJsonLabel: string;
+    exportJsonHint: string;
+    reviewWorkspaceLinkLabel: string;
+    publicationWorkspaceHint: string;
+  };
   editorialReview: {
     assignmentTitle: string;
     assignmentBody: string;
@@ -109,6 +149,7 @@ type Phase2Copy = {
     publicationReadyLabel: string;
     publicationSlugLabel: string;
     publishedAtLabel: string;
+    publicationWorkspaceLabel: string;
     savePublicationLabel: string;
     savingPublicationLabel: string;
   };
@@ -259,6 +300,55 @@ const copy: Localized<Phase2Copy> = {
       activeAssignmentsLabel: "Active assignments",
       completedAssignmentsLabel: "Completed reviews",
     },
+    publication: {
+      queueTitle: "Publication queue",
+      queueBody:
+        "Accepted submissions move through publication preparation here. Export tools prepare drafts for the existing MDX workflow without exposing them publicly.",
+      queueEmpty:
+        "No accepted submissions match the current publication filters.",
+      stateFilterLabel: "Pipeline state",
+      localeFilterLabel: "Publication locale",
+      allStates: "All publication states",
+      allLocales: "All locales",
+      openWorkspaceLabel: "Open publication workspace",
+      workflowTitle: "Publication workflow",
+      workflowBody:
+        "Editorial publication work remains internal. Metadata, export drafts and publication timestamps are managed here while the public site continues to use the existing MDX article system.",
+      currentStateLabel: "Current pipeline state",
+      metadataTitle: "Publication metadata",
+      metadataBody:
+        "Prepare the accepted submission for publication without altering the original manuscript content.",
+      publicationTitleLabel: "Publication title",
+      publicationExcerptLabel: "Publication excerpt",
+      publicationTagsLabel: "Publication tags",
+      publicationTagsHint: "Separate tags with commas.",
+      publicationLocaleLabel: "Publication locale",
+      publicationLocaleHint:
+        "Use the publication locale that will be carried into the exported article draft.",
+      publicationVolumeLabel: "Volume",
+      publicationIssueLabel: "Issue",
+      publicationYearLabel: "Year",
+      seoTitleLabel: "SEO title",
+      seoDescriptionLabel: "SEO description",
+      publicationReadyLabel: "Publication ready",
+      publishedLabel: "Published",
+      publicationSlugLabel: "Publication slug",
+      publishedAtLabel: "Published at",
+      savePublicationLabel: "Save publication metadata",
+      savingPublicationLabel: "Saving publication metadata...",
+      exportTitle: "Export drafts",
+      exportBody:
+        "Export a markdown draft for the MDX publication workflow, or export the full structured record as JSON for internal handling.",
+      exportMarkdownLabel: "Export markdown draft",
+      exportMarkdownHint:
+        "Creates a frontmatter + markdown draft from the accepted submission.",
+      exportJsonLabel: "Export structured JSON",
+      exportJsonHint:
+        "Exports metadata, structured manuscript content and file metadata as JSON.",
+      reviewWorkspaceLinkLabel: "Return to review detail",
+      publicationWorkspaceHint:
+        "Accepted manuscripts remain locked for authors. Publication preparation happens here, on the editorial side only.",
+    },
     editorialReview: {
       assignmentTitle: "Reviewer assignments",
       assignmentBody:
@@ -281,6 +371,7 @@ const copy: Localized<Phase2Copy> = {
       publicationReadyLabel: "Publication ready",
       publicationSlugLabel: "Publication slug",
       publishedAtLabel: "Published at",
+      publicationWorkspaceLabel: "Open publication workspace",
       savePublicationLabel: "Save publication settings",
       savingPublicationLabel: "Saving publication settings...",
     },
@@ -427,6 +518,51 @@ const copy: Localized<Phase2Copy> = {
       activeAssignmentsLabel: "进行中任务",
       completedAssignmentsLabel: "已完成审稿",
     },
+    publication: {
+      queueTitle: "出版队列",
+      queueBody:
+        "已接收稿件会在这里进入出版准备。导出工具只生成内部草稿，不会自动公开到当前 MDX 站点。",
+      queueEmpty: "当前筛选条件下没有已接收稿件进入出版流程。",
+      stateFilterLabel: "流程状态",
+      localeFilterLabel: "出版语言",
+      allStates: "全部出版状态",
+      allLocales: "全部语言",
+      openWorkspaceLabel: "打开出版工作区",
+      workflowTitle: "出版工作流",
+      workflowBody:
+        "出版处理仍然是内部编辑流程。这里管理元数据、导出草稿和发布时间，而公开站点继续沿用现有 MDX 文章系统。",
+      currentStateLabel: "当前流程状态",
+      metadataTitle: "出版元数据",
+      metadataBody:
+        "在不改动原始稿件内容的前提下，为已接收稿件准备出版信息。",
+      publicationTitleLabel: "出版标题",
+      publicationExcerptLabel: "出版摘要",
+      publicationTagsLabel: "出版标签",
+      publicationTagsHint: "多个标签请用逗号分隔。",
+      publicationLocaleLabel: "出版语言",
+      publicationLocaleHint: "这里的语言会写入导出的文章草稿。",
+      publicationVolumeLabel: "卷",
+      publicationIssueLabel: "期",
+      publicationYearLabel: "年份",
+      seoTitleLabel: "SEO 标题",
+      seoDescriptionLabel: "SEO 描述",
+      publicationReadyLabel: "已完成出版准备",
+      publishedLabel: "已发布",
+      publicationSlugLabel: "出版 slug",
+      publishedAtLabel: "发布时间",
+      savePublicationLabel: "保存出版元数据",
+      savingPublicationLabel: "保存中...",
+      exportTitle: "导出草稿",
+      exportBody:
+        "可导出 markdown 草稿进入现有 MDX 发布流程，或导出完整 JSON 结构供内部处理。",
+      exportMarkdownLabel: "导出 markdown 草稿",
+      exportMarkdownHint: "从已接收稿件生成 frontmatter + markdown 草稿。",
+      exportJsonLabel: "导出结构化 JSON",
+      exportJsonHint: "导出元数据、结构化正文和文件元数据。",
+      reviewWorkspaceLinkLabel: "返回审稿详情",
+      publicationWorkspaceHint:
+        "已接收稿件在作者侧保持锁定。出版准备只在编辑内部工作区进行。",
+    },
     editorialReview: {
       assignmentTitle: "审稿分配",
       assignmentBody:
@@ -449,6 +585,7 @@ const copy: Localized<Phase2Copy> = {
       publicationReadyLabel: "可进入出版准备",
       publicationSlugLabel: "出版 slug",
       publishedAtLabel: "发布时间",
+      publicationWorkspaceLabel: "打开出版工作区",
       savePublicationLabel: "保存出版设置",
       savingPublicationLabel: "保存中...",
     },

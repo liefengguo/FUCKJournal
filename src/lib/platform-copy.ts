@@ -51,12 +51,16 @@ type EditorCopy = {
   intro: string;
   overviewTitle: string;
   queueTitle: string;
+  publicationsTitle: string;
   emptyTitle: string;
   emptyBody: string;
   submittedCountLabel: string;
   reviewCountLabel: string;
   revisionCountLabel: string;
   acceptedCountLabel: string;
+  publicationPendingCountLabel: string;
+  publicationReadyCountLabel: string;
+  publishedCountLabel: string;
 };
 
 type ReviewerCopy = {
@@ -199,12 +203,16 @@ const copy: Localized<PlatformCopy> = {
         "Review the current submission queue and update editorial status without modifying author manuscript content.",
       overviewTitle: "Queue overview",
       queueTitle: "Active submissions",
+      publicationsTitle: "Publication queue",
       emptyTitle: "No active submissions",
       emptyBody: "Submitted manuscripts will appear here once authors send them to the queue.",
       submittedCountLabel: "Submitted",
       reviewCountLabel: "Under review",
       revisionCountLabel: "Revision requested",
       acceptedCountLabel: "Accepted",
+      publicationPendingCountLabel: "Accepted, not ready",
+      publicationReadyCountLabel: "Publication-ready",
+      publishedCountLabel: "Published",
     },
     reviewer: {
       title: "Reviewer desk",
@@ -347,12 +355,16 @@ const copy: Localized<PlatformCopy> = {
         "查看当前投稿队列，并在不修改作者正文内容的前提下更新编辑状态。",
       overviewTitle: "队列概览",
       queueTitle: "活跃稿件",
+      publicationsTitle: "出版队列",
       emptyTitle: "当前没有活跃稿件",
       emptyBody: "作者正式提交后，稿件会出现在这里。",
       submittedCountLabel: "已提交",
       reviewCountLabel: "审阅中",
       revisionCountLabel: "需修改",
       acceptedCountLabel: "已接收",
+      publicationPendingCountLabel: "已接收未准备",
+      publicationReadyCountLabel: "出版准备就绪",
+      publishedCountLabel: "已发布",
     },
     reviewer: {
       title: "审稿台",

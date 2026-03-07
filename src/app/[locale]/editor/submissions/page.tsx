@@ -6,12 +6,16 @@ import { requireEditorUser } from "@/lib/auth-guards";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { LocaleLink } from "@/components/locale-link";
+import { PublicationStateBadge } from "@/components/submissions/publication-state-badge";
 import { SubmissionStatusBadge } from "@/components/submissions/submission-status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Locale } from "@/i18n/routing";
 import { getPlatformCopy } from "@/lib/platform-copy";
-import { getSubmissionStatusLabel } from "@/lib/submission-status";
+import {
+  getPublicationPipelineState,
+  getSubmissionStatusLabel,
+} from "@/lib/submission-status";
 import { getSubmissionUiCopy } from "@/lib/submission-ui-copy";
 import { listEditorialSubmissions } from "@/lib/submissions";
 import { formatDate } from "@/lib/site";
@@ -75,9 +79,20 @@ export default async function EditorSubmissionsPage({
           label: copy.editor.queueTitle,
           active: true,
         },
+        {
+          href: "/editor/publications",
+          label: copy.editor.publicationsTitle,
+        },
       ]}
       action={
-        <SignOutButton locale={locale} label={locale === "zh" ? "退出" : "Sign out"} />
+        <>
+          <Button asChild variant="outline" size="sm">
+            <LocaleLink locale={locale} href="/editor/publications">
+              {copy.editor.publicationsTitle}
+            </LocaleLink>
+          </Button>
+          <SignOutButton locale={locale} label={locale === "zh" ? "退出" : "Sign out"} />
+        </>
       }
     >
       <div className="space-y-6">
@@ -183,8 +198,11 @@ export default async function EditorSubmissionsPage({
                         <span>
                           {locale === "zh" ? "审稿意见" : "Reviews"}: {submission._count.reviews}
                         </span>
-                        {submission.isPublicationReady ? (
-                          <span>{locale === "zh" ? "可出版准备" : "Publication ready"}</span>
+                        {submission.status === "ACCEPTED" ? (
+                          <PublicationStateBadge
+                            locale={locale}
+                            state={getPublicationPipelineState(submission)}
+                          />
                         ) : null}
                       </div>
                     </div>

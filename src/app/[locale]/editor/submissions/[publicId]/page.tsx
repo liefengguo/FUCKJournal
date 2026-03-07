@@ -6,7 +6,6 @@ import {
   addInternalNoteAction,
   assignReviewerAction,
   removeReviewerAssignmentAction,
-  updatePublicationSettingsAction,
   updateSubmissionStatusAction,
 } from "@/app/actions/submissions";
 import { requireEditorUser } from "@/lib/auth-guards";
@@ -17,6 +16,7 @@ import { LocaleLink } from "@/components/locale-link";
 import { ReviewDecisionBadge } from "@/components/reviews/review-decision-badge";
 import { ReviewList } from "@/components/reviews/review-list";
 import { SubmissionFilePanel } from "@/components/submissions/submission-file-panel";
+import { PublicationStateBadge } from "@/components/submissions/publication-state-badge";
 import { SubmissionStatusBadge } from "@/components/submissions/submission-status-badge";
 import { SubmissionStructuredContent } from "@/components/submissions/submission-structured-content";
 import { SubmissionTimeline } from "@/components/submissions/submission-timeline";
@@ -24,13 +24,13 @@ import { SubmissionVersionList } from "@/components/submissions/submission-versi
 import { Button } from "@/components/ui/button";
 import { FormSubmitButton } from "@/components/ui/form-submit-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { Locale } from "@/i18n/routing";
 import { getSubmissionError, getSubmissionNotice } from "@/lib/feedback";
 import { getPlatformCopy } from "@/lib/platform-copy";
 import {
   getEditorStatusTransitions,
+  getPublicationPipelineState,
   getReviewDecisionLabel,
   getReviewerAssignmentStatusLabel,
   getSubmissionStatusLabel,
@@ -52,16 +52,6 @@ type EditorialSubmissionDetailPageProps = {
     error?: string;
   };
 };
-
-function toDatetimeLocal(value: Date | null) {
-  if (!value) {
-    return "";
-  }
-
-  return new Date(value.getTime() - value.getTimezoneOffset() * 60000)
-    .toISOString()
-    .slice(0, 16);
-}
 
 export default async function EditorialSubmissionDetailPage({
   params,
@@ -109,6 +99,7 @@ export default async function EditorialSubmissionDetailPage({
     submission.reviewerAssignments.length - submission.reviews.length,
     0,
   );
+  const publicationState = getPublicationPipelineState(submission);
 
   return (
     <DashboardShell
@@ -125,12 +116,21 @@ export default async function EditorialSubmissionDetailPage({
           label: copy.editor.queueTitle,
           active: true,
         },
+        {
+          href: "/editor/publications",
+          label: copy.editor.publicationsTitle,
+        },
       ]}
       action={
         <>
           <Button asChild variant="outline" size="sm">
             <LocaleLink locale={locale} href="/editor/submissions">
               {copy.submission.backToQueueLabel}
+            </LocaleLink>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <LocaleLink locale={locale} href="/editor/publications">
+              {copy.editor.publicationsTitle}
             </LocaleLink>
           </Button>
           <SignOutButton locale={locale} label={locale === "zh" ? "退出" : "Sign out"} />
@@ -437,48 +437,48 @@ export default async function EditorialSubmissionDetailPage({
             </CardHeader>
             <CardContent className="space-y-5">
               {submission.status === "ACCEPTED" ? (
-                <form action={updatePublicationSettingsAction} className="space-y-5">
-                  <input type="hidden" name="locale" value={locale} />
-                  <input type="hidden" name="publicId" value={publicId} />
-                  <label className="flex items-center gap-3 rounded-[24px] border border-border/60 px-4 py-4">
-                    <input
-                      type="checkbox"
-                      name="isPublicationReady"
-                      defaultChecked={submission.isPublicationReady}
-                      className="h-4 w-4 rounded border-border"
-                    />
-                    <span className="font-serif text-lg">
-                      {uiCopy.editorialReview.publicationReadyLabel}
-                    </span>
-                  </label>
-                  <div className="space-y-2">
-                    <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                      {uiCopy.editorialReview.publicationSlugLabel}
-                    </label>
-                    <Input
-                      name="publicationSlug"
-                      defaultValue={submission.publicationSlug ?? ""}
-                      placeholder="issue-essay-slug"
-                    />
+                <>
+                  <div className="rounded-[24px] border border-border/60 px-5 py-5">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="space-y-2">
+                        <p className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                          {uiCopy.publication.currentStateLabel}
+                        </p>
+                        <PublicationStateBadge locale={locale} state={publicationState} />
+                      </div>
+                      <Button asChild size="sm">
+                        <LocaleLink
+                          locale={locale}
+                          href={`/editor/publications/${publicId}`}
+                        >
+                          {uiCopy.editorialReview.publicationWorkspaceLabel}
+                        </LocaleLink>
+                      </Button>
+                    </div>
+                    <div className="mt-5 grid gap-4 md:grid-cols-2">
+                      <div>
+                        <p className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                          {uiCopy.editorialReview.publicationSlugLabel}
+                        </p>
+                        <p className="mt-2 font-serif text-lg">
+                          {submission.publicationSlug || (locale === "zh" ? "未填写" : "Not set")}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                          {uiCopy.editorialReview.publishedAtLabel}
+                        </p>
+                        <p className="mt-2 font-serif text-lg">
+                          {submission.publishedAt
+                            ? formatDate(submission.publishedAt.toISOString(), locale)
+                            : locale === "zh"
+                              ? "尚未发布"
+                              : "Not published"}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                      {uiCopy.editorialReview.publishedAtLabel}
-                    </label>
-                    <Input
-                      name="publishedAt"
-                      type="datetime-local"
-                      defaultValue={toDatetimeLocal(submission.publishedAt)}
-                    />
-                  </div>
-                  <FormSubmitButton
-                    type="submit"
-                    size="lg"
-                    className="w-full"
-                    idleLabel={uiCopy.editorialReview.savePublicationLabel}
-                    pendingLabel={uiCopy.editorialReview.savingPublicationLabel}
-                  />
-                </form>
+                </>
               ) : (
                 <div className="rounded-[24px] border border-border/60 px-5 py-5">
                   <p className="font-serif text-lg leading-relaxed text-muted-foreground">
