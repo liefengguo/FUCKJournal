@@ -23,6 +23,7 @@ import {
   updatePublicationSettings,
 } from "@/lib/submissions";
 import { getEditorStatusTransitions } from "@/lib/submission-status";
+import { publicationLocaleValues } from "@/lib/validations/publication";
 import { manuscriptLanguages } from "@/lib/validations/submission";
 
 function getLocale(value: FormDataEntryValue | null): Locale {
@@ -45,6 +46,11 @@ function getOptionalString(formData: FormData, key: string) {
   return value || null;
 }
 
+function getEditorReturnPath(locale: Locale, formData: FormData, fallback: string) {
+  const value = getFormString(formData, "returnPath");
+  return value.startsWith(`/${locale}/editor`) ? value : fallback;
+}
+
 function getKeywords(formData: FormData) {
   return getFormString(formData, "keywords")
     .split(",")
@@ -55,11 +61,13 @@ function getKeywords(formData: FormData) {
 function revalidateEditorAndReviewerPaths(locale: Locale, publicId?: string) {
   revalidatePath(`/${locale}/editor`);
   revalidatePath(`/${locale}/editor/submissions`);
+  revalidatePath(`/${locale}/editor/publications`);
   revalidatePath(`/${locale}/reviewer`);
   revalidatePath(`/${locale}/reviewer/submissions`);
 
   if (publicId) {
     revalidatePath(`/${locale}/editor/submissions/${publicId}`);
+    revalidatePath(`/${locale}/editor/publications/${publicId}`);
     revalidatePath(`/${locale}/reviewer/submissions/${publicId}`);
   }
 }
@@ -327,22 +335,51 @@ export async function saveReviewerReviewAction(formData: FormData) {
 export async function updatePublicationSettingsAction(formData: FormData) {
   const locale = getLocale(formData.get("locale"));
   const publicId = getFormString(formData, "publicId");
+  const returnPath = getEditorReturnPath(
+    locale,
+    formData,
+    `/${locale}/editor/publications/${publicId}`,
+  );
   const user = await requireEditorUser(
     locale,
-    `/${locale}/editor/submissions/${publicId}`,
+    returnPath,
   );
 
+  const publicationLocaleValue = getOptionalString(formData, "publicationLocale");
+  const publicationLocale =
+    publicationLocaleValue &&
+    publicationLocaleValues.includes(
+      publicationLocaleValue as (typeof publicationLocaleValues)[number],
+    )
+      ? (publicationLocaleValue as (typeof publicationLocaleValues)[number])
+      : publicationLocaleValue === null
+        ? null
+        : "__invalid__";
+  const publicationYearValue = getOptionalString(formData, "publicationYear");
+  const publicationYear =
+    publicationYearValue && /^\d{4}$/.test(publicationYearValue)
+      ? Number(publicationYearValue)
+      : publicationYearValue === null
+        ? null
+        : "__invalid__";
+  const isPublished = formData.get("isPublished") === "on";
   const publishedAt = getOptionalString(formData, "publishedAt");
+  const normalizedPublishedAt =
+    isPublished && !publishedAt ? new Date().toISOString() : publishedAt;
   const publishedAtIso =
-    publishedAt && Number.isNaN(new Date(publishedAt).getTime())
+    normalizedPublishedAt && Number.isNaN(new Date(normalizedPublishedAt).getTime())
       ? "__invalid__"
-      : publishedAt
-        ? new Date(publishedAt).toISOString()
+      : normalizedPublishedAt
+        ? new Date(normalizedPublishedAt).toISOString()
         : null;
 
-  if (publishedAtIso === "__invalid__") {
+  if (
+    publishedAtIso === "__invalid__" ||
+    publicationLocale === "__invalid__" ||
+    publicationYear === "__invalid__"
+  ) {
     redirect(
-      buildNoticeUrl(`/${locale}/editor/submissions/${publicId}`, "error", "invalid-publication-input"),
+      buildNoticeUrl(returnPath, "error", "invalid-publication-input"),
     );
   }
 
@@ -350,13 +387,22 @@ export async function updatePublicationSettingsAction(formData: FormData) {
     await updatePublicationSettings(user, publicId, {
       isPublicationReady: formData.get("isPublicationReady") === "on",
       publicationSlug: getOptionalString(formData, "publicationSlug"),
-      publishedAt: publishedAtIso,
+      publicationTitle: getOptionalString(formData, "publicationTitle"),
+      publicationExcerpt: getOptionalString(formData, "publicationExcerpt"),
+      publicationTags: getKeywords(formData),
+      publicationLocale: publicationLocale as "en" | "zh" | null,
+      publicationVolume: getOptionalString(formData, "publicationVolume"),
+      publicationIssue: getOptionalString(formData, "publicationIssue"),
+      publicationYear: publicationYear as number | null,
+      seoTitle: getOptionalString(formData, "seoTitle"),
+      seoDescription: getOptionalString(formData, "seoDescription"),
+      publishedAt: isPublished ? publishedAtIso : null,
     });
 
-    revalidatePath(`/${locale}/editor/submissions/${publicId}`);
+    revalidateEditorAndReviewerPaths(locale, publicId);
     redirect(
       buildNoticeUrl(
-        `/${locale}/editor/submissions/${publicId}`,
+        returnPath,
         "notice",
         "publication-updated",
       ),
@@ -365,7 +411,7 @@ export async function updatePublicationSettingsAction(formData: FormData) {
     const message =
       error instanceof SubmissionError ? error.code : "publication-update-failed";
     redirect(
-      buildNoticeUrl(`/${locale}/editor/submissions/${publicId}`, "error", message),
+      buildNoticeUrl(returnPath, "error", message),
     );
   }
 }

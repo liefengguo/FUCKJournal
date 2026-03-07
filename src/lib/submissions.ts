@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 
-import type {
+import {
   Prisma,
   ReviewerAssignmentStatus,
   SubmissionStatus,
@@ -21,18 +21,19 @@ import {
   canUserUpdateSubmissionStatus,
   canUserViewSubmission,
 } from "@/lib/permissions";
+import type { PublicationExportSource } from "@/lib/publication-export";
 import {
   deleteStoredFile,
   StorageError,
   storeSubmissionFile,
 } from "@/lib/storage";
 import { getEditorStatusTransitions } from "@/lib/submission-status";
+import { publicationPipelineStateValues } from "@/lib/validations/publication";
 import {
   publicationSettingsSchema,
-  reviewInputSchema,
-  reviewerAssignmentSchema,
-  type ReviewInput,
-} from "@/lib/validations/review";
+  type PublicationSettingsInput,
+} from "@/lib/validations/publication";
+import { reviewInputSchema, reviewerAssignmentSchema, type ReviewInput } from "@/lib/validations/review";
 import {
   submissionDraftSchema,
   submitManuscriptSchema,
@@ -54,6 +55,16 @@ const submissionListSelect = {
   sourceArchiveFileName: true,
   isPublicationReady: true,
   publicationSlug: true,
+  publicationTitle: true,
+  publicationExcerpt: true,
+  publicationTags: true,
+  publicationLocale: true,
+  publicationVolume: true,
+  publicationIssue: true,
+  publicationYear: true,
+  seoTitle: true,
+  seoDescription: true,
+  publishedAt: true,
 } satisfies Prisma.SubmissionSelect;
 
 const personSelect = {
@@ -165,6 +176,45 @@ const reviewerQueueInclude = {
   },
 } satisfies Prisma.ReviewerAssignmentInclude;
 
+const publicationExportSelect = {
+  publicId: true,
+  title: true,
+  abstract: true,
+  keywords: true,
+  coverLetter: true,
+  introduction: true,
+  mainContent: true,
+  conclusion: true,
+  references: true,
+  manuscriptLanguage: true,
+  manuscriptFileName: true,
+  manuscriptMimeType: true,
+  manuscriptSizeBytes: true,
+  sourceArchiveFileName: true,
+  sourceArchiveMimeType: true,
+  sourceArchiveSizeBytes: true,
+  publicationSlug: true,
+  publicationTitle: true,
+  publicationExcerpt: true,
+  publicationTags: true,
+  publicationLocale: true,
+  publicationVolume: true,
+  publicationIssue: true,
+  publicationYear: true,
+  seoTitle: true,
+  seoDescription: true,
+  publishedAt: true,
+  submittedAt: true,
+  createdAt: true,
+  updatedAt: true,
+  author: {
+    select: {
+      name: true,
+      email: true,
+    },
+  },
+} satisfies Prisma.SubmissionSelect;
+
 export type SubmissionListItem = Prisma.SubmissionGetPayload<{
   select: typeof submissionListSelect;
 }>;
@@ -179,6 +229,10 @@ export type EditorialSubmissionDetail = Prisma.SubmissionGetPayload<{
 
 export type ReviewerQueueItem = Prisma.ReviewerAssignmentGetPayload<{
   include: typeof reviewerQueueInclude;
+}>;
+
+export type PublicationExportItem = Prisma.SubmissionGetPayload<{
+  select: typeof publicationExportSelect;
 }>;
 
 type Viewer = {
@@ -226,6 +280,10 @@ export class SubmissionError extends Error {
 
 function uniqueKeywords(keywords: string[]) {
   return Array.from(new Set(keywords.map((keyword) => keyword.trim()).filter(Boolean)));
+}
+
+function uniquePublicationTags(tags: string[]) {
+  return Array.from(new Set(tags.map((tag) => tag.trim()).filter(Boolean)));
 }
 
 function normalizeDraftInput(input: SubmissionDraftInput) {
@@ -389,6 +447,57 @@ function validateInternalNote(body: string) {
   }
 
   return normalized;
+}
+
+function buildPublicationQueueWhere(filters?: {
+  state?: (typeof publicationPipelineStateValues)[number] | "ALL";
+  locale?: string | "all";
+}): Prisma.SubmissionWhereInput {
+  const localeFilter =
+    filters?.locale && filters.locale !== "all"
+      ? {
+          OR: [
+            { publicationLocale: filters.locale },
+            {
+              publicationLocale: null,
+              manuscriptLanguage: filters.locale,
+            },
+          ],
+        }
+      : {};
+
+  if (!filters?.state || filters.state === "ALL") {
+    return {
+      status: "ACCEPTED",
+      ...localeFilter,
+    };
+  }
+
+  if (filters.state === "ACCEPTED_PENDING") {
+    return {
+      status: "ACCEPTED",
+      isPublicationReady: false,
+      publishedAt: null,
+      ...localeFilter,
+    };
+  }
+
+  if (filters.state === "READY") {
+    return {
+      status: "ACCEPTED",
+      isPublicationReady: true,
+      publishedAt: null,
+      ...localeFilter,
+    };
+  }
+
+  return {
+    status: "ACCEPTED",
+    publishedAt: {
+      not: null,
+    },
+    ...localeFilter,
+  };
 }
 
 function getAssetFieldPatch(
@@ -588,6 +697,57 @@ export async function getEditorialSubmissionDetail(publicId: string) {
       },
     },
     include: editorSubmissionInclude,
+  });
+}
+
+export async function listPublicationSubmissions(filters?: {
+  state?: (typeof publicationPipelineStateValues)[number] | "ALL";
+  locale?: string | "all";
+}) {
+  return db.submission.findMany({
+    where: buildPublicationQueueWhere(filters),
+    select: {
+      ...submissionListSelect,
+      author: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+      _count: {
+        select: {
+          versions: true,
+          reviews: true,
+        },
+      },
+    },
+    orderBy: [
+      { publishedAt: "desc" },
+      { isPublicationReady: "desc" },
+      { updatedAt: "desc" },
+    ],
+  });
+}
+
+export async function getPublicationSubmissionDetail(publicId: string) {
+  return db.submission.findFirst({
+    where: {
+      publicId,
+      status: "ACCEPTED",
+    },
+    include: editorSubmissionInclude,
+  });
+}
+
+export async function getPublicationExportSource(
+  publicId: string,
+): Promise<PublicationExportSource | null> {
+  return db.submission.findFirst({
+    where: {
+      publicId,
+      status: "ACCEPTED",
+    },
+    select: publicationExportSelect,
   });
 }
 
@@ -1233,11 +1393,7 @@ export async function saveReviewerReview(
 export async function updatePublicationSettings(
   viewer: Viewer,
   publicId: string,
-  input: {
-    isPublicationReady: boolean;
-    publicationSlug: string | null;
-    publishedAt: string | null;
-  },
+  input: PublicationSettingsInput,
 ) {
   if (!canUserManagePublication(viewer.role)) {
     throw new SubmissionError("status-update-forbidden");
@@ -1246,10 +1402,6 @@ export async function updatePublicationSettings(
   const parsedInput = publicationSettingsSchema.safeParse(input);
 
   if (!parsedInput.success) {
-    throw new SubmissionError("invalid-publication-input");
-  }
-
-  if (parsedInput.data.isPublicationReady && !parsedInput.data.publicationSlug) {
     throw new SubmissionError("invalid-publication-input");
   }
 
@@ -1272,6 +1424,15 @@ export async function updatePublicationSettings(
         data: {
           isPublicationReady: parsedInput.data.isPublicationReady,
           publicationSlug: parsedInput.data.publicationSlug ?? null,
+          publicationTitle: parsedInput.data.publicationTitle ?? null,
+          publicationExcerpt: parsedInput.data.publicationExcerpt ?? null,
+          publicationTags: uniquePublicationTags(parsedInput.data.publicationTags),
+          publicationLocale: parsedInput.data.publicationLocale ?? null,
+          publicationVolume: parsedInput.data.publicationVolume ?? null,
+          publicationIssue: parsedInput.data.publicationIssue ?? null,
+          publicationYear: parsedInput.data.publicationYear ?? null,
+          seoTitle: parsedInput.data.seoTitle ?? null,
+          seoDescription: parsedInput.data.seoDescription ?? null,
           publishedAt: parsedInput.data.publishedAt
             ? new Date(parsedInput.data.publishedAt)
             : null,
@@ -1279,6 +1440,13 @@ export async function updatePublicationSettings(
       });
     });
   } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      throw new SubmissionError("publication-slug-taken");
+    }
+
     if (error instanceof SubmissionError) {
       throw error;
     }

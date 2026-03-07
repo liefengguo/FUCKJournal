@@ -62,6 +62,7 @@ export type SubmissionFeedbackCode =
   | "invalid-reviewer"
   | "publication-not-allowed"
   | "invalid-publication-input"
+  | "publication-slug-taken"
   | "publication-update-failed"
   | "review-closed";
 
@@ -204,6 +205,8 @@ const submissionFeedback: Localized<{
         "Only accepted submissions can be marked as publication-ready.",
       "invalid-publication-input":
         "Please provide valid publication settings and a clean slug.",
+      "publication-slug-taken":
+        "This publication slug is already in use. Choose a different slug.",
       "publication-update-failed": "Unable to update publication settings.",
       "review-closed":
         "Reviews can be submitted only while the manuscript is under review.",
@@ -268,6 +271,7 @@ const submissionFeedback: Localized<{
       "invalid-reviewer": "请选择有效的审稿人账户。",
       "publication-not-allowed": "只有已接收稿件才能标记为可进入出版准备。",
       "invalid-publication-input": "请填写有效的出版设置与规范 slug。",
+      "publication-slug-taken": "这个出版 slug 已被使用，请更换一个。",
       "publication-update-failed": "暂时无法更新出版准备设置。",
       "review-closed": "只有在稿件处于审稿中时才能提交审稿意见。",
     },

@@ -79,6 +79,15 @@ model Submission {
   status                       SubmissionStatus        @default(DRAFT)
   isPublicationReady           Boolean                 @default(false)
   publicationSlug              String?                 @unique
+  publicationTitle             String?
+  publicationExcerpt           String?                 @db.Text
+  publicationTags              String[]                @default([])
+  publicationLocale            String?
+  publicationVolume            String?
+  publicationIssue             String?
+  publicationYear              Int?
+  seoTitle                     String?
+  seoDescription               String?                 @db.Text
   publishedAt                  DateTime?
   submittedAt                  DateTime?
   createdAt                    DateTime                @default(now())
@@ -92,7 +101,9 @@ model Submission {
 
   @@index([authorId, status])
   @@index([status, updatedAt])
+  @@index([status, isPublicationReady, publishedAt])
   @@index([manuscriptLanguage])
+  @@index([publicationLocale])
 }
 
 model SubmissionVersion {

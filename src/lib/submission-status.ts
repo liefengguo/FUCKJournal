@@ -15,6 +15,15 @@ export const userEditableStatuses: SubmissionStatus[] = [
 export const staffRoles: UserRole[] = ["EDITOR", "ADMIN"];
 export const reviewerRoles: UserRole[] = ["REVIEWER"];
 
+export const publicationPipelineStates = [
+  "ACCEPTED_PENDING",
+  "READY",
+  "PUBLISHED",
+] as const;
+
+export type PublicationPipelineState =
+  (typeof publicationPipelineStates)[number];
+
 export function isStaffRole(role: UserRole) {
   return staffRoles.includes(role);
 }
@@ -107,4 +116,39 @@ export function getReviewerAssignmentStatusLabel(
   };
 
   return labels[locale][status];
+}
+
+export function getPublicationPipelineState(submission: {
+  isPublicationReady: boolean;
+  publishedAt: Date | null;
+}) {
+  if (submission.publishedAt) {
+    return "PUBLISHED" as const;
+  }
+
+  if (submission.isPublicationReady) {
+    return "READY" as const;
+  }
+
+  return "ACCEPTED_PENDING" as const;
+}
+
+export function getPublicationPipelineStateLabel(
+  state: PublicationPipelineState,
+  locale: Locale,
+) {
+  const labels: Record<Locale, Record<PublicationPipelineState, string>> = {
+    en: {
+      ACCEPTED_PENDING: "Accepted, not publication-ready",
+      READY: "Publication-ready",
+      PUBLISHED: "Published",
+    },
+    zh: {
+      ACCEPTED_PENDING: "已接收，未进入出版准备",
+      READY: "已进入出版准备",
+      PUBLISHED: "已发布",
+    },
+  };
+
+  return labels[locale][state];
 }
