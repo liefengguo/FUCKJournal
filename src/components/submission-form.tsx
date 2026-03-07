@@ -57,7 +57,7 @@ export function SubmissionForm({
       uploadHint,
     ].join("\n");
 
-    window.location.href = `mailto:submissions@fuckjournal.org?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = `mailto:guoliefeng@hotmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
 
   return (
