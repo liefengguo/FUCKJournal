@@ -3,19 +3,23 @@ import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 
 import { updateSubmissionStatusAction } from "@/app/actions/submissions";
+import { requireEditorUser } from "@/lib/auth-guards";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { FlashMessage } from "@/components/dashboard/flash-message";
 import { LocaleLink } from "@/components/locale-link";
 import { SubmissionStatusBadge } from "@/components/submissions/submission-status-badge";
+import { SubmissionTimeline } from "@/components/submissions/submission-timeline";
 import { Button } from "@/components/ui/button";
+import { FormSubmitButton } from "@/components/ui/form-submit-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import type { Locale } from "@/i18n/routing";
 import {
-  getPlatformCopy,
+  getSubmissionError,
   getSubmissionNotice,
-} from "@/lib/platform-copy";
+} from "@/lib/feedback";
+import { getPlatformCopy } from "@/lib/platform-copy";
 import { getEditorStatusTransitions } from "@/lib/submission-status";
 import { getEditorialSubmissionDetail } from "@/lib/submissions";
 import { formatDate } from "@/lib/site";
@@ -39,6 +43,7 @@ export default async function EditorialSubmissionDetailPage({
   noStore();
   setRequestLocale(locale);
 
+  await requireEditorUser(locale, `/${locale}/editor/submissions/${publicId}`);
   const submission = await getEditorialSubmissionDetail(publicId);
 
   if (!submission) {
@@ -47,6 +52,7 @@ export default async function EditorialSubmissionDetailPage({
 
   const copy = getPlatformCopy(locale);
   const notice = getSubmissionNotice(locale, searchParams?.notice);
+  const errorMessage = getSubmissionError(locale, searchParams?.error);
   const transitions = getEditorStatusTransitions(submission.status);
 
   return (
@@ -77,7 +83,7 @@ export default async function EditorialSubmissionDetailPage({
       }
     >
       {notice ? <FlashMessage message={notice} /> : null}
-      {searchParams?.error ? <FlashMessage message={searchParams.error} tone="error" /> : null}
+      {errorMessage ? <FlashMessage message={errorMessage} tone="error" /> : null}
 
       <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <Card>
@@ -171,6 +177,7 @@ export default async function EditorialSubmissionDetailPage({
                 <form action={updateSubmissionStatusAction} className="space-y-5">
                   <input type="hidden" name="locale" value={locale} />
                   <input type="hidden" name="publicId" value={publicId} />
+                  <input type="hidden" name="currentStatus" value={submission.status} />
                   <div className="space-y-2">
                     <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
                       {copy.submission.statusLabel}
@@ -193,9 +200,13 @@ export default async function EditorialSubmissionDetailPage({
                     </label>
                     <Textarea name="note" className="min-h-[160px]" />
                   </div>
-                  <Button type="submit" size="lg" className="w-full">
-                    {copy.submission.updateStatusLabel}
-                  </Button>
+                  <FormSubmitButton
+                    type="submit"
+                    size="lg"
+                    className="w-full"
+                    idleLabel={copy.submission.updateStatusLabel}
+                    pendingLabel={locale === "zh" ? "更新中..." : "Updating status..."}
+                  />
                 </form>
               ) : (
                 <p className="font-serif text-lg leading-relaxed text-muted-foreground">
@@ -212,31 +223,11 @@ export default async function EditorialSubmissionDetailPage({
               <CardTitle>{copy.submission.statusHistoryTitle}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {submission.statusEvents.length ? (
-                submission.statusEvents.map((event) => (
-                  <div key={event.id} className="rounded-[20px] border border-border/60 px-4 py-4">
-                    <p className="font-sans text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                      {formatDate(event.createdAt.toISOString(), locale)}
-                    </p>
-                    <p className="mt-2 font-serif text-lg">
-                      <span>{event.fromStatus ? `${event.fromStatus} → ` : ""}</span>
-                      <span>{event.toStatus}</span>
-                    </p>
-                    <p className="mt-2 font-serif text-base text-muted-foreground">
-                      {event.actor.name || event.actor.email}
-                    </p>
-                    {event.note ? (
-                      <p className="mt-2 whitespace-pre-wrap font-serif text-base leading-relaxed text-muted-foreground">
-                        {event.note}
-                      </p>
-                    ) : null}
-                  </div>
-                ))
-              ) : (
-                <p className="font-serif text-lg leading-relaxed text-muted-foreground">
-                  {locale === "zh" ? "目前还没有状态记录。" : "No status events yet."}
-                </p>
-              )}
+              <SubmissionTimeline
+                locale={locale}
+                events={submission.statusEvents}
+                isDraft={submission.status === "DRAFT"}
+              />
             </CardContent>
           </Card>
         </div>

@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { credentialsSchema } from "@/lib/validations/auth";
 
 export const authOptions: NextAuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: "jwt",
   },

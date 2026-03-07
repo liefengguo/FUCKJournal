@@ -1,14 +1,16 @@
 import { unstable_noStore as noStore } from "next/cache";
 import { setRequestLocale } from "next-intl/server";
 
-import { getServerAuthSession } from "@/auth";
+import { requireContributorUser } from "@/lib/auth-guards";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { FlashMessage } from "@/components/dashboard/flash-message";
 import { LocaleLink } from "@/components/locale-link";
 import { SubmissionStatusBadge } from "@/components/submissions/submission-status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Locale } from "@/i18n/routing";
+import { getAuthFeedback } from "@/lib/feedback";
 import { getPlatformCopy } from "@/lib/platform-copy";
 import { listAuthorSubmissions } from "@/lib/submissions";
 import { formatDate } from "@/lib/site";
@@ -17,16 +19,23 @@ type DashboardPageProps = {
   params: {
     locale: Locale;
   };
+  searchParams?: {
+    notice?: string;
+  };
 };
 
-export default async function DashboardPage({ params }: DashboardPageProps) {
+export default async function DashboardPage({
+  params,
+  searchParams,
+}: DashboardPageProps) {
   const { locale } = params;
   noStore();
   setRequestLocale(locale);
 
-  const session = await getServerAuthSession();
-  const submissions = await listAuthorSubmissions(session!.user.id);
+  const user = await requireContributorUser(locale, `/${locale}/dashboard`);
+  const submissions = await listAuthorSubmissions(user.id);
   const copy = getPlatformCopy(locale);
+  const notice = getAuthFeedback(locale, searchParams?.notice);
 
   const counts = submissions.reduce(
     (accumulator, submission) => {
@@ -76,6 +85,7 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
         </>
       }
     >
+      {notice ? <FlashMessage message={notice} /> : null}
       <section className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader>
@@ -154,6 +164,13 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
                 <p className="mt-3 font-serif text-lg leading-relaxed text-muted-foreground">
                   {copy.dashboard.emptyBody}
                 </p>
+                <div className="mt-5">
+                  <Button asChild size="sm">
+                    <LocaleLink locale={locale} href="/dashboard/submissions/new">
+                      {copy.dashboard.createDraftLabel}
+                    </LocaleLink>
+                  </Button>
+                </div>
               </div>
             )}
             <Button asChild variant="outline" size="sm">

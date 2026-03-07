@@ -1,13 +1,16 @@
 import { unstable_noStore as noStore } from "next/cache";
 import { setRequestLocale } from "next-intl/server";
 
+import { requireEditorUser } from "@/lib/auth-guards";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { FlashMessage } from "@/components/dashboard/flash-message";
 import { LocaleLink } from "@/components/locale-link";
 import { SubmissionStatusBadge } from "@/components/submissions/submission-status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Locale } from "@/i18n/routing";
+import { getAuthFeedback } from "@/lib/feedback";
 import { getPlatformCopy } from "@/lib/platform-copy";
 import { listEditorialSubmissions } from "@/lib/submissions";
 import { formatDate } from "@/lib/site";
@@ -16,15 +19,23 @@ type EditorPageProps = {
   params: {
     locale: Locale;
   };
+  searchParams?: {
+    notice?: string;
+  };
 };
 
-export default async function EditorPage({ params }: EditorPageProps) {
+export default async function EditorPage({
+  params,
+  searchParams,
+}: EditorPageProps) {
   const { locale } = params;
   noStore();
   setRequestLocale(locale);
 
+  await requireEditorUser(locale, `/${locale}/editor`);
   const copy = getPlatformCopy(locale);
   const submissions = await listEditorialSubmissions();
+  const notice = getAuthFeedback(locale, searchParams?.notice);
   const counts = submissions.reduce(
     (accumulator, submission) => {
       if (submission.status === "SUBMITTED") {
@@ -75,6 +86,7 @@ export default async function EditorPage({ params }: EditorPageProps) {
         </>
       }
     >
+      {notice ? <FlashMessage message={notice} /> : null}
       <section className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader>
@@ -146,6 +158,11 @@ export default async function EditorPage({ params }: EditorPageProps) {
               <p className="font-display text-2xl">{copy.editor.emptyTitle}</p>
               <p className="mt-3 font-serif text-lg leading-relaxed text-muted-foreground">
                 {copy.editor.emptyBody}
+              </p>
+              <p className="mt-4 font-sans text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                {locale === "zh"
+                  ? "作者一旦提交，稿件会自动进入这里。"
+                  : "As soon as authors submit, new entries will appear here."}
               </p>
             </div>
           )}

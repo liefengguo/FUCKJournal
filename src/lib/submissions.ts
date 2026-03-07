@@ -5,8 +5,10 @@ import type {
   SubmissionStatus,
   UserRole,
 } from "@prisma/client";
+import { ZodError } from "zod";
 
 import { db } from "@/lib/db";
+import type { SubmissionFeedbackCode } from "@/lib/feedback";
 import {
   canUserEditSubmission,
   canUserSubmitSubmission,
@@ -75,7 +77,12 @@ type Viewer = {
   role: UserRole;
 };
 
-export class SubmissionError extends Error {}
+export class SubmissionError extends Error {
+  constructor(public code: SubmissionFeedbackCode) {
+    super(code);
+    this.name = "SubmissionError";
+  }
+}
 
 function normalizeDraftInput(input: SubmissionDraftInput) {
   const parsed = submissionDraftSchema.parse(input);
@@ -165,21 +172,21 @@ async function generateSubmissionPublicId(client: typeof db | Prisma.Transaction
     }
   }
 
-  throw new SubmissionError("Unable to generate a stable public submission id.");
+  throw new SubmissionError("public-id-generation-failed");
 }
 
-function getEditableError(status: SubmissionStatus) {
+function getEditableErrorCode(status: SubmissionStatus): SubmissionFeedbackCode {
   switch (status) {
     case "SUBMITTED":
-      return "Submitted manuscripts are locked while they wait for editorial review.";
+      return "submitted-locked";
     case "UNDER_REVIEW":
-      return "Manuscripts under review are locked until the editorial team requests changes or reaches a decision.";
+      return "under-review-locked";
     case "ACCEPTED":
-      return "Accepted manuscripts are no longer editable in the author workspace.";
+      return "accepted-locked";
     case "REJECTED":
-      return "Rejected manuscripts remain read-only in the archive.";
+      return "rejected-locked";
     default:
-      return "This submission is not editable.";
+      return "not-editable";
   }
 }
 
@@ -276,7 +283,17 @@ export async function saveAuthorSubmissionDraft(
   publicId: string,
   input: SubmissionDraftInput,
 ) {
-  const normalized = normalizeDraftInput(input);
+  let normalized: ReturnType<typeof normalizeDraftInput>;
+
+  try {
+    normalized = normalizeDraftInput(input);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      throw new SubmissionError("invalid-draft-input");
+    }
+
+    throw error;
+  }
 
   return db.$transaction(async (tx) => {
     const submission = await tx.submission.findUnique({
@@ -284,11 +301,11 @@ export async function saveAuthorSubmissionDraft(
     });
 
     if (!submission || submission.authorId !== viewer.id) {
-      throw new SubmissionError("Submission not found.");
+      throw new SubmissionError("submission-not-found");
     }
 
     if (!canUserEditSubmission(viewer, submission)) {
-      throw new SubmissionError(getEditableError(submission.status));
+      throw new SubmissionError(getEditableErrorCode(submission.status));
     }
 
     const hasChanges =
@@ -322,11 +339,11 @@ export async function submitAuthorSubmission(viewer: Viewer, publicId: string) {
     });
 
     if (!submission || submission.authorId !== viewer.id) {
-      throw new SubmissionError("Submission not found.");
+      throw new SubmissionError("submission-not-found");
     }
 
     if (!canUserSubmitSubmission(viewer, submission)) {
-      throw new SubmissionError(getEditableError(submission.status));
+      throw new SubmissionError(getEditableErrorCode(submission.status));
     }
 
     const validation = submitManuscriptSchema.safeParse({
@@ -340,9 +357,7 @@ export async function submitAuthorSubmission(viewer: Viewer, publicId: string) {
     });
 
     if (!validation.success) {
-      throw new SubmissionError(
-        "Add a title and a substantive abstract before submitting the manuscript.",
-      );
+      throw new SubmissionError("missing-required-submission-fields");
     }
 
     const updatedSubmission = await tx.submission.update({
@@ -373,7 +388,7 @@ export async function updateEditorialSubmissionStatus(
   note?: string,
 ) {
   if (!canUserUpdateSubmissionStatus(viewer.role)) {
-    throw new SubmissionError("Only editors and administrators can update submission status.");
+    throw new SubmissionError("status-update-forbidden");
   }
 
   return db.$transaction(async (tx) => {
@@ -382,13 +397,13 @@ export async function updateEditorialSubmissionStatus(
     });
 
     if (!submission || submission.status === "DRAFT") {
-      throw new SubmissionError("Submission not found.");
+      throw new SubmissionError("submission-not-found");
     }
 
     const transitions = getEditorStatusTransitions(submission.status);
 
     if (!transitions.includes(nextStatus)) {
-      throw new SubmissionError("That status change is not allowed from the current state.");
+      throw new SubmissionError("status-transition-not-allowed");
     }
 
     const updatedSubmission = await tx.submission.update({

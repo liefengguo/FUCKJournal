@@ -4,9 +4,11 @@ import type { SubmissionStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { getServerAuthSession } from "@/auth";
 import type { Locale } from "@/i18n/routing";
-import { isStaffRole } from "@/lib/submission-status";
+import {
+  requireContributorUser,
+  requireEditorUser,
+} from "@/lib/auth-guards";
 import {
   createDraftSubmission,
   saveAuthorSubmissionDraft,
@@ -15,6 +17,7 @@ import {
   updateEditorialSubmissionStatus,
 } from "@/lib/submissions";
 import { manuscriptLanguages } from "@/lib/validations/submission";
+import { getEditorStatusTransitions } from "@/lib/submission-status";
 
 function getLocale(value: FormDataEntryValue | null): Locale {
   return value === "zh" ? "zh" : "en";
@@ -36,23 +39,9 @@ function getOptionalString(formData: FormData, key: string) {
   return value || null;
 }
 
-function requireAuthenticatedUser(locale: Locale) {
-  return getServerAuthSession().then((session) => {
-    if (!session?.user) {
-      redirect(`/${locale}/sign-in`);
-    }
-
-    return session.user;
-  });
-}
-
 export async function createDraftAction(formData: FormData) {
   const locale = getLocale(formData.get("locale"));
-  const user = await requireAuthenticatedUser(locale);
-
-  if (isStaffRole(user.role)) {
-    redirect(`/${locale}/editor`);
-  }
+  const user = await requireContributorUser(locale, `/${locale}/dashboard/submissions/new`);
 
   try {
     const submission = await createDraftSubmission(user.id);
@@ -68,7 +57,7 @@ export async function createDraftAction(formData: FormData) {
     );
   } catch (error) {
     const message =
-      error instanceof SubmissionError ? error.message : "Unable to create a draft right now.";
+      error instanceof SubmissionError ? error.code : "draft-create-failed";
     redirect(buildNoticeUrl(`/${locale}/dashboard/submissions/new`, "error", message));
   }
 }
@@ -76,22 +65,43 @@ export async function createDraftAction(formData: FormData) {
 export async function saveDraftAction(formData: FormData) {
   const locale = getLocale(formData.get("locale"));
   const publicId = getFormString(formData, "publicId");
-  const user = await requireAuthenticatedUser(locale);
-
-  if (isStaffRole(user.role)) {
-    redirect(`/${locale}/editor`);
-  }
+  const user = await requireContributorUser(
+    locale,
+    `/${locale}/dashboard/submissions/${publicId}/edit`,
+  );
 
   const manuscriptLanguageValue = getOptionalString(formData, "manuscriptLanguage");
-  const manuscriptLanguage = manuscriptLanguageValue && manuscriptLanguages.includes(
-    manuscriptLanguageValue as (typeof manuscriptLanguages)[number],
-  )
-    ? (manuscriptLanguageValue as (typeof manuscriptLanguages)[number])
-    : null;
+  const manuscriptLanguage =
+    manuscriptLanguageValue &&
+    manuscriptLanguages.includes(
+      manuscriptLanguageValue as (typeof manuscriptLanguages)[number],
+    )
+      ? (manuscriptLanguageValue as (typeof manuscriptLanguages)[number])
+      : null;
+
+  if (manuscriptLanguageValue && !manuscriptLanguage) {
+    redirect(
+      buildNoticeUrl(
+        `/${locale}/dashboard/submissions/${publicId}/edit`,
+        "error",
+        "invalid-draft-input",
+      ),
+    );
+  }
 
   const fileSizeValue = getOptionalString(formData, "manuscriptSizeBytes");
   const manuscriptSizeBytes =
     fileSizeValue && /^\d+$/.test(fileSizeValue) ? Number(fileSizeValue) : null;
+
+  if (fileSizeValue && manuscriptSizeBytes === null) {
+    redirect(
+      buildNoticeUrl(
+        `/${locale}/dashboard/submissions/${publicId}/edit`,
+        "error",
+        "invalid-draft-input",
+      ),
+    );
+  }
 
   try {
     await saveAuthorSubmissionDraft(user, publicId, {
@@ -116,7 +126,7 @@ export async function saveDraftAction(formData: FormData) {
     );
   } catch (error) {
     const message =
-      error instanceof SubmissionError ? error.message : "Unable to save the draft.";
+      error instanceof SubmissionError ? error.code : "draft-save-failed";
     redirect(
       buildNoticeUrl(`/${locale}/dashboard/submissions/${publicId}/edit`, "error", message),
     );
@@ -126,11 +136,10 @@ export async function saveDraftAction(formData: FormData) {
 export async function submitDraftAction(formData: FormData) {
   const locale = getLocale(formData.get("locale"));
   const publicId = getFormString(formData, "publicId");
-  const user = await requireAuthenticatedUser(locale);
-
-  if (isStaffRole(user.role)) {
-    redirect(`/${locale}/editor`);
-  }
+  const user = await requireContributorUser(
+    locale,
+    `/${locale}/dashboard/submissions/${publicId}/edit`,
+  );
 
   try {
     await submitAuthorSubmission(user, publicId);
@@ -148,7 +157,7 @@ export async function submitDraftAction(formData: FormData) {
     );
   } catch (error) {
     const message =
-      error instanceof SubmissionError ? error.message : "Unable to submit the manuscript.";
+      error instanceof SubmissionError ? error.code : "draft-submit-failed";
     redirect(
       buildNoticeUrl(`/${locale}/dashboard/submissions/${publicId}/edit`, "error", message),
     );
@@ -158,16 +167,44 @@ export async function submitDraftAction(formData: FormData) {
 export async function updateSubmissionStatusAction(formData: FormData) {
   const locale = getLocale(formData.get("locale"));
   const publicId = getFormString(formData, "publicId");
-  const user = await requireAuthenticatedUser(locale);
-
-  if (!isStaffRole(user.role)) {
-    redirect(`/${locale}/dashboard`);
-  }
+  const user = await requireEditorUser(
+    locale,
+    `/${locale}/editor/submissions/${publicId}`,
+  );
 
   const nextStatus = getFormString(formData, "status") as SubmissionStatus;
   const note = getOptionalString(formData, "note");
 
+  if (
+    ![
+      "DRAFT",
+      "SUBMITTED",
+      "UNDER_REVIEW",
+      "REVISION_REQUESTED",
+      "ACCEPTED",
+      "REJECTED",
+    ].includes(nextStatus)
+  ) {
+    redirect(
+      buildNoticeUrl(`/${locale}/editor/submissions/${publicId}`, "error", "invalid-status"),
+    );
+  }
+
   try {
+    const currentTransitions = getEditorStatusTransitions(
+      (getFormString(formData, "currentStatus") as SubmissionStatus) || "SUBMITTED",
+    );
+
+    if (currentTransitions.length && !currentTransitions.includes(nextStatus)) {
+      redirect(
+        buildNoticeUrl(
+          `/${locale}/editor/submissions/${publicId}`,
+          "error",
+          "status-transition-not-allowed",
+        ),
+      );
+    }
+
     await updateEditorialSubmissionStatus(user, publicId, nextStatus, note ?? undefined);
 
     revalidatePath(`/${locale}/editor`);
@@ -179,7 +216,7 @@ export async function updateSubmissionStatusAction(formData: FormData) {
     );
   } catch (error) {
     const message =
-      error instanceof SubmissionError ? error.message : "Unable to update status.";
+      error instanceof SubmissionError ? error.code : "status-update-failed";
     redirect(
       buildNoticeUrl(`/${locale}/editor/submissions/${publicId}`, "error", message),
     );

@@ -2,19 +2,21 @@ import { unstable_noStore as noStore } from "next/cache";
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 
-import { getServerAuthSession } from "@/auth";
+import { requireContributorUser } from "@/lib/auth-guards";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { FlashMessage } from "@/components/dashboard/flash-message";
 import { LocaleLink } from "@/components/locale-link";
 import { SubmissionStatusBadge } from "@/components/submissions/submission-status-badge";
+import { SubmissionTimeline } from "@/components/submissions/submission-timeline";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Locale } from "@/i18n/routing";
 import {
-  getPlatformCopy,
+  getSubmissionError,
   getSubmissionNotice,
-} from "@/lib/platform-copy";
+} from "@/lib/feedback";
+import { getPlatformCopy } from "@/lib/platform-copy";
 import { canAuthorEditStatus } from "@/lib/submission-status";
 import { getAuthorSubmissionDetail } from "@/lib/submissions";
 import { formatDate } from "@/lib/site";
@@ -59,8 +61,11 @@ export default async function SubmissionDetailPage({
   noStore();
   setRequestLocale(locale);
 
-  const session = await getServerAuthSession();
-  const submission = await getAuthorSubmissionDetail(session!.user.id, publicId);
+  const user = await requireContributorUser(
+    locale,
+    `/${locale}/dashboard/submissions/${publicId}`,
+  );
+  const submission = await getAuthorSubmissionDetail(user.id, publicId);
 
   if (!submission) {
     notFound();
@@ -69,6 +74,7 @@ export default async function SubmissionDetailPage({
   const copy = getPlatformCopy(locale);
   const canEdit = canAuthorEditStatus(submission.status);
   const notice = getSubmissionNotice(locale, searchParams?.notice);
+  const errorMessage = getSubmissionError(locale, searchParams?.error);
 
   return (
     <DashboardShell
@@ -100,7 +106,7 @@ export default async function SubmissionDetailPage({
       }
     >
       {notice ? <FlashMessage message={notice} /> : null}
-      {searchParams?.error ? <FlashMessage message={searchParams.error} tone="error" /> : null}
+      {errorMessage ? <FlashMessage message={errorMessage} tone="error" /> : null}
 
       <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <Card>
@@ -202,28 +208,11 @@ export default async function SubmissionDetailPage({
               <CardTitle>{copy.submission.statusHistoryTitle}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {submission.statusEvents.length ? (
-                submission.statusEvents.map((event) => (
-                  <div key={event.id} className="rounded-[20px] border border-border/60 px-4 py-4">
-                    <p className="font-sans text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                      {formatDate(event.createdAt.toISOString(), locale)}
-                    </p>
-                    <p className="mt-2 font-serif text-lg">
-                      <span>{event.fromStatus ? `${event.fromStatus} → ` : ""}</span>
-                      <span>{event.toStatus}</span>
-                    </p>
-                    {event.note ? (
-                      <p className="mt-2 whitespace-pre-wrap font-serif text-base leading-relaxed text-muted-foreground">
-                        {event.note}
-                      </p>
-                    ) : null}
-                  </div>
-                ))
-              ) : (
-                <p className="font-serif text-lg leading-relaxed text-muted-foreground">
-                  {locale === "zh" ? "目前还没有状态记录。" : "No status events yet."}
-                </p>
-              )}
+              <SubmissionTimeline
+                locale={locale}
+                events={submission.statusEvents}
+                isDraft={submission.status === "DRAFT"}
+              />
             </CardContent>
           </Card>
         </div>

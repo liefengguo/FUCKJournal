@@ -1,19 +1,32 @@
-import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 
+import { authOptions } from "@/auth";
+import { jsonNoStore, hasTrustedOrigin, isJsonRequest } from "@/lib/api-security";
 import { db } from "@/lib/db";
 import { signUpSchema } from "@/lib/validations/auth";
+import { getServerSession } from "next-auth";
 
 export async function POST(request: Request) {
   try {
+    if (!isJsonRequest(request)) {
+      return jsonNoStore({ errorCode: "unsupported-media-type" }, { status: 415 });
+    }
+
+    if (!hasTrustedOrigin(request)) {
+      return jsonNoStore({ errorCode: "forbidden-origin" }, { status: 403 });
+    }
+
+    const session = await getServerSession(authOptions);
+
+    if (session?.user) {
+      return jsonNoStore({ errorCode: "already-authenticated" }, { status: 403 });
+    }
+
     const payload = await request.json();
     const parsed = signUpSchema.safeParse(payload);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Please provide a valid name, email and password." },
-        { status: 400 },
-      );
+      return jsonNoStore({ errorCode: "invalid-sign-up-input" }, { status: 400 });
     }
 
     const existingUser = await db.user.findUnique({
@@ -22,10 +35,7 @@ export async function POST(request: Request) {
     });
 
     if (existingUser) {
-      return NextResponse.json(
-        { error: "An account with this email already exists." },
-        { status: 409 },
-      );
+      return jsonNoStore({ errorCode: "email-taken" }, { status: 409 });
     }
 
     const passwordHash = await bcrypt.hash(parsed.data.password, 12);
@@ -39,11 +49,8 @@ export async function POST(request: Request) {
       select: { id: true },
     });
 
-    return NextResponse.json({ ok: true }, { status: 201 });
+    return jsonNoStore({ ok: true }, { status: 201 });
   } catch {
-    return NextResponse.json(
-      { error: "Unable to create an account right now." },
-      { status: 500 },
-    );
+    return jsonNoStore({ errorCode: "registration-unavailable" }, { status: 500 });
   }
 }

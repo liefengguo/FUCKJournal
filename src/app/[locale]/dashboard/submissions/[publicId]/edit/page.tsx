@@ -6,21 +6,23 @@ import {
   saveDraftAction,
   submitDraftAction,
 } from "@/app/actions/submissions";
-import { getServerAuthSession } from "@/auth";
+import { requireContributorUser } from "@/lib/auth-guards";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { FlashMessage } from "@/components/dashboard/flash-message";
 import { LocaleLink } from "@/components/locale-link";
 import { SubmissionStatusBadge } from "@/components/submissions/submission-status-badge";
 import { Button } from "@/components/ui/button";
+import { FormSubmitButton } from "@/components/ui/form-submit-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { Locale } from "@/i18n/routing";
 import {
-  getPlatformCopy,
+  getSubmissionError,
   getSubmissionNotice,
-} from "@/lib/platform-copy";
+} from "@/lib/feedback";
+import { getPlatformCopy } from "@/lib/platform-copy";
 import { canAuthorEditStatus } from "@/lib/submission-status";
 import { getAuthorSubmissionDetail } from "@/lib/submissions";
 import { manuscriptLanguages } from "@/lib/validations/submission";
@@ -44,8 +46,11 @@ export default async function EditSubmissionPage({
   noStore();
   setRequestLocale(locale);
 
-  const session = await getServerAuthSession();
-  const submission = await getAuthorSubmissionDetail(session!.user.id, publicId);
+  const user = await requireContributorUser(
+    locale,
+    `/${locale}/dashboard/submissions/${publicId}/edit`,
+  );
+  const submission = await getAuthorSubmissionDetail(user.id, publicId);
 
   if (!submission) {
     notFound();
@@ -54,6 +59,7 @@ export default async function EditSubmissionPage({
   const copy = getPlatformCopy(locale);
   const isEditable = canAuthorEditStatus(submission.status);
   const notice = getSubmissionNotice(locale, searchParams?.notice);
+  const errorMessage = getSubmissionError(locale, searchParams?.error);
 
   return (
     <DashboardShell
@@ -83,7 +89,7 @@ export default async function EditSubmissionPage({
       }
     >
       {notice ? <FlashMessage message={notice} /> : null}
-      {searchParams?.error ? <FlashMessage message={searchParams.error} tone="error" /> : null}
+      {errorMessage ? <FlashMessage message={errorMessage} tone="error" /> : null}
 
       <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <Card>
@@ -188,9 +194,13 @@ export default async function EditSubmissionPage({
                 </div>
               </div>
               <div className="flex flex-wrap gap-3 pt-2">
-                <Button type="submit" size="lg" disabled={!isEditable}>
-                  {copy.submission.saveDraftLabel}
-                </Button>
+                <FormSubmitButton
+                  type="submit"
+                  size="lg"
+                  disabled={!isEditable}
+                  idleLabel={copy.submission.saveDraftLabel}
+                  pendingLabel={locale === "zh" ? "保存中..." : "Saving draft..."}
+                />
                 <Button asChild variant="outline" size="lg">
                   <LocaleLink locale={locale} href={`/dashboard/submissions/${publicId}`}>
                     {copy.submission.backToDashboardLabel}
@@ -232,9 +242,14 @@ export default async function EditSubmissionPage({
               <form action={submitDraftAction}>
                 <input type="hidden" name="locale" value={locale} />
                 <input type="hidden" name="publicId" value={publicId} />
-                <Button type="submit" size="lg" className="w-full" disabled={!isEditable}>
-                  {copy.submission.submitManuscriptLabel}
-                </Button>
+                <FormSubmitButton
+                  type="submit"
+                  size="lg"
+                  className="w-full"
+                  disabled={!isEditable}
+                  idleLabel={copy.submission.submitManuscriptLabel}
+                  pendingLabel={locale === "zh" ? "提交中..." : "Submitting manuscript..."}
+                />
               </form>
             </CardContent>
           </Card>

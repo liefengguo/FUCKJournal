@@ -1,7 +1,7 @@
 import { unstable_noStore as noStore } from "next/cache";
 import { setRequestLocale } from "next-intl/server";
 
-import { getServerAuthSession } from "@/auth";
+import { requireContributorUser } from "@/lib/auth-guards";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { LocaleLink } from "@/components/locale-link";
@@ -24,8 +24,8 @@ export default async function SubmissionsPage({ params }: SubmissionsPageProps) 
   noStore();
   setRequestLocale(locale);
 
-  const session = await getServerAuthSession();
-  const submissions = await listAuthorSubmissions(session!.user.id);
+  const user = await requireContributorUser(locale, `/${locale}/dashboard/submissions`);
+  const submissions = await listAuthorSubmissions(user.id);
   const copy = getPlatformCopy(locale);
 
   return (
@@ -98,8 +98,17 @@ export default async function SubmissionsPage({ params }: SubmissionsPageProps) 
               </div>
             ))
           ) : (
-            <div className="rounded-[24px] border border-border/60 px-5 py-6 font-serif text-lg text-muted-foreground">
-              {copy.submission.noSubmissions}
+            <div className="rounded-[24px] border border-border/60 px-5 py-6">
+              <p className="font-serif text-lg text-muted-foreground">
+                {copy.submission.noSubmissions}
+              </p>
+              <div className="mt-5">
+                <Button asChild size="sm">
+                  <LocaleLink locale={locale} href="/dashboard/submissions/new">
+                    {copy.submission.createDraftLabel}
+                  </LocaleLink>
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>

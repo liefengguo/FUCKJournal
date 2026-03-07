@@ -21,11 +21,12 @@ npm install
 npm run dev
 npm run build
 npm run lint
+npm run db:migrate
 npm run db:generate
 npm run db:seed
 ```
 
-## Environment
+## Local Development
 
 Create a local env file before using the submission platform:
 
@@ -40,12 +41,36 @@ Required values:
 - `NEXTAUTH_SECRET`
 - `NEXT_PUBLIC_SITE_URL`
 
-Optional seed users:
+Default seeded test accounts:
 
-- `SEED_EDITOR_EMAIL`
-- `SEED_EDITOR_PASSWORD`
+- `contributor@fuckjournal.local` / `Phase1User123!`
+- `editor@fuckjournal.local` / `Phase1Editor123!`
+
+Optional overrides:
+
+- `SEED_TEST_USER_EMAIL`
+- `SEED_TEST_USER_PASSWORD`
+- `SEED_TEST_EDITOR_EMAIL`
+- `SEED_TEST_EDITOR_PASSWORD`
 - `SEED_ADMIN_EMAIL`
 - `SEED_ADMIN_PASSWORD`
+
+Suggested local workflow:
+
+```bash
+npm install
+cp .env.example .env.local
+npm run db:generate
+npm run db:migrate
+npm run db:seed
+npm run dev
+```
+
+Production build check:
+
+```bash
+npm run build
+```
 
 ## Content
 

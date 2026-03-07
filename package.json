@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
     "db:seed": "node prisma/seed.mjs",
     "dev": "next dev",
     "prebuild": "prisma generate",

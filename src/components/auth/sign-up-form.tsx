@@ -10,26 +10,38 @@ import { LocaleLink } from "@/components/locale-link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  getAuthFeedback,
+  getSignUpValidationMessages,
+} from "@/lib/feedback";
+import { getSafeCallbackUrl } from "@/lib/auth-routing";
 import { getPlatformCopy } from "@/lib/platform-copy";
 
 type SignUpFormProps = {
   locale: Locale;
+  callbackUrl?: string | null;
 };
 
-export function SignUpForm({ locale }: SignUpFormProps) {
+export function SignUpForm({ locale, callbackUrl }: SignUpFormProps) {
   const copy = getPlatformCopy(locale).signUp;
   const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
+  const [messages, setMessages] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
 
   async function handleSubmit(formData: FormData) {
-    setError(null);
-
     const payload = {
       name: String(formData.get("name") ?? ""),
       email: String(formData.get("email") ?? ""),
       password: String(formData.get("password") ?? ""),
     };
+    const validationMessages = getSignUpValidationMessages(locale, payload);
+
+    if (validationMessages.length) {
+      setMessages(validationMessages);
+      return;
+    }
+
+    setMessages([]);
 
     startTransition(async () => {
       const response = await fetch("/api/auth/register", {
@@ -42,9 +54,11 @@ export function SignUpForm({ locale }: SignUpFormProps) {
 
       if (!response.ok) {
         const body = (await response.json().catch(() => null)) as
-          | { error?: string }
+          | { errorCode?: string }
           | null;
-        setError(body?.error ?? `${copy.errorPrefix}.`);
+        setMessages([
+          getAuthFeedback(locale, body?.errorCode) ?? `${copy.errorPrefix}.`,
+        ]);
         return;
       }
 
@@ -55,11 +69,17 @@ export function SignUpForm({ locale }: SignUpFormProps) {
       });
 
       if (!result || result.error) {
-        setError(`${copy.errorPrefix}.`);
+        setMessages([
+          getAuthFeedback(locale, "invalid-credentials") ?? `${copy.errorPrefix}.`,
+        ]);
         return;
       }
 
-      router.push(`/${locale}/dashboard`);
+      const nextPath = getSafeCallbackUrl(callbackUrl, locale, `/${locale}/dashboard`);
+      const nextUrl = new URL(nextPath, window.location.origin);
+      nextUrl.searchParams.set("notice", "account-created");
+
+      router.push(`${nextUrl.pathname}${nextUrl.search}`);
       router.refresh();
     });
   }
@@ -98,10 +118,17 @@ export function SignUpForm({ locale }: SignUpFormProps) {
               required
             />
           </div>
-          {error ? (
-            <p className="font-serif text-base leading-relaxed text-journal-red">
-              {error}
-            </p>
+          {messages.length ? (
+            <div className="rounded-[24px] border border-journal-red/30 bg-journal-red/10 px-4 py-4">
+              {messages.map((message) => (
+                <p
+                  key={message}
+                  className="font-serif text-base leading-relaxed text-journal-red"
+                >
+                  {message}
+                </p>
+              ))}
+            </div>
           ) : null}
           <Button type="submit" size="lg" className="w-full" disabled={isPending}>
             {isPending ? copy.submittingLabel : copy.submitLabel}

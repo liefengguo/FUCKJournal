@@ -3,6 +3,7 @@ import { getServerAuthSession } from "@/auth";
 import type { Locale } from "@/i18n/routing";
 import { LocaleLink } from "@/components/locale-link";
 import { Button } from "@/components/ui/button";
+import { FormSubmitButton } from "@/components/ui/form-submit-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getPlatformCopy } from "@/lib/platform-copy";
 import { isStaffRole } from "@/lib/submission-status";
@@ -39,9 +40,13 @@ export async function SubmissionForm({ locale }: SubmissionFormProps) {
               {!isStaff ? (
                 <form action={createDraftAction} className="w-full sm:w-auto">
                   <input type="hidden" name="locale" value={locale} />
-                  <Button type="submit" size="lg" className="w-full sm:w-auto">
-                    {copy.createDraftLabel}
-                  </Button>
+                  <FormSubmitButton
+                    type="submit"
+                    size="lg"
+                    className="w-full sm:w-auto"
+                    idleLabel={copy.createDraftLabel}
+                    pendingLabel={locale === "zh" ? "创建中..." : "Creating draft..."}
+                  />
                 </form>
               ) : null}
               <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">

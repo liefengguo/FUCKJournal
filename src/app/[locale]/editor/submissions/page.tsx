@@ -1,6 +1,7 @@
 import { unstable_noStore as noStore } from "next/cache";
 import { setRequestLocale } from "next-intl/server";
 
+import { requireEditorUser } from "@/lib/auth-guards";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { SubmissionStatusBadge } from "@/components/submissions/submission-status-badge";
@@ -24,6 +25,7 @@ export default async function EditorSubmissionsPage({
   noStore();
   setRequestLocale(locale);
 
+  await requireEditorUser(locale, `/${locale}/editor/submissions`);
   const copy = getPlatformCopy(locale);
   const submissions = await listEditorialSubmissions();
 
@@ -79,8 +81,15 @@ export default async function EditorSubmissionsPage({
               </div>
             ))
           ) : (
-            <div className="rounded-[24px] border border-border/60 px-5 py-6 font-serif text-lg text-muted-foreground">
-              {copy.editor.emptyBody}
+            <div className="rounded-[24px] border border-border/60 px-5 py-6">
+              <p className="font-serif text-lg text-muted-foreground">
+                {copy.editor.emptyBody}
+              </p>
+              <p className="mt-4 font-sans text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                {locale === "zh"
+                  ? "当前不需要执行状态更新。"
+                  : "No status changes are waiting for editorial action."}
+              </p>
             </div>
           )}
         </CardContent>

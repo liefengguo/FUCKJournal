@@ -3,6 +3,13 @@ import { PrismaClient, UserRole } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+const defaults = {
+  userEmail: process.env.SEED_TEST_USER_EMAIL ?? "contributor@fuckjournal.local",
+  userPassword: process.env.SEED_TEST_USER_PASSWORD ?? "Phase1User123!",
+  editorEmail: process.env.SEED_TEST_EDITOR_EMAIL ?? "editor@fuckjournal.local",
+  editorPassword: process.env.SEED_TEST_EDITOR_PASSWORD ?? "Phase1Editor123!",
+};
+
 async function maybeSeedUser(role, email, password, name) {
   if (!email || !password) {
     return;
@@ -31,10 +38,17 @@ async function maybeSeedUser(role, email, password, name) {
 
 async function main() {
   await maybeSeedUser(
+    UserRole.USER,
+    defaults.userEmail,
+    defaults.userPassword,
+    "Test Contributor",
+  );
+
+  await maybeSeedUser(
     UserRole.EDITOR,
-    process.env.SEED_EDITOR_EMAIL,
-    process.env.SEED_EDITOR_PASSWORD,
-    "Editorial Desk",
+    defaults.editorEmail,
+    defaults.editorPassword,
+    "Test Editor",
   );
 
   await maybeSeedUser(
@@ -43,6 +57,10 @@ async function main() {
     process.env.SEED_ADMIN_PASSWORD,
     "Managing Editor",
   );
+
+  console.log("Seed accounts ready:");
+  console.log(`- USER: ${defaults.userEmail} / ${defaults.userPassword}`);
+  console.log(`- EDITOR: ${defaults.editorEmail} / ${defaults.editorPassword}`);
 }
 
 main()
