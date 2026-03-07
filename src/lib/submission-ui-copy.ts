@@ -72,6 +72,46 @@ type Phase2Copy = {
     allLanguages: string;
     applyFiltersLabel: string;
   };
+  review: {
+    sectionTitle: string;
+    sectionBody: string;
+    recommendationLabel: string;
+    commentsToAuthorLabel: string;
+    commentsToEditorLabel: string;
+    saveLabel: string;
+    savingLabel: string;
+    empty: string;
+  };
+  reviewer: {
+    assignedTitle: string;
+    assignedBody: string;
+    accessNote: string;
+    reviewNote: string;
+    activeAssignmentsLabel: string;
+    completedAssignmentsLabel: string;
+  };
+  editorialReview: {
+    assignmentTitle: string;
+    assignmentBody: string;
+    assignLabel: string;
+    assigningLabel: string;
+    removeLabel: string;
+    removeConfirmLabel: string;
+    noAssignments: string;
+    receivedReviewsTitle: string;
+    receivedReviewsBody: string;
+    noReviews: string;
+    summaryTitle: string;
+    summaryReceived: string;
+    summaryOutstanding: string;
+    publicationTitle: string;
+    publicationBody: string;
+    publicationReadyLabel: string;
+    publicationSlugLabel: string;
+    publishedAtLabel: string;
+    savePublicationLabel: string;
+    savingPublicationLabel: string;
+  };
 };
 
 const copy: Localized<Phase2Copy> = {
@@ -197,6 +237,53 @@ const copy: Localized<Phase2Copy> = {
       allLanguages: "All languages",
       applyFiltersLabel: "Apply filters",
     },
+    review: {
+      sectionTitle: "Review",
+      sectionBody:
+        "Provide a recommendation for the editors together with comments to the author and any confidential remarks to the editorial team.",
+      recommendationLabel: "Recommendation",
+      commentsToAuthorLabel: "Comments to author",
+      commentsToEditorLabel: "Comments to editor",
+      saveLabel: "Save review",
+      savingLabel: "Saving review...",
+      empty: "No review has been submitted yet.",
+    },
+    reviewer: {
+      assignedTitle: "Assigned manuscripts",
+      assignedBody:
+        "These submissions are visible only because they have been assigned to your reviewer desk.",
+      accessNote:
+        "Reviewer access is limited to assigned manuscripts and their files. Submission status remains under editorial control.",
+      reviewNote:
+        "Your recommendation informs editorial decisions but does not change the manuscript status directly.",
+      activeAssignmentsLabel: "Active assignments",
+      completedAssignmentsLabel: "Completed reviews",
+    },
+    editorialReview: {
+      assignmentTitle: "Reviewer assignments",
+      assignmentBody:
+        "Assign reviewers, follow completion status and keep the decision workflow organized in one place.",
+      assignLabel: "Assign reviewer",
+      assigningLabel: "Assigning...",
+      removeLabel: "Remove",
+      removeConfirmLabel: "Remove assignment",
+      noAssignments: "No reviewers have been assigned yet.",
+      receivedReviewsTitle: "Received reviews",
+      receivedReviewsBody:
+        "Review recommendations and comments are collected here for editorial decisions.",
+      noReviews: "No reviews have been submitted yet.",
+      summaryTitle: "Review summary",
+      summaryReceived: "Received",
+      summaryOutstanding: "Outstanding",
+      publicationTitle: "Publication foundation",
+      publicationBody:
+        "Accepted submissions can be marked as publication-ready without changing the existing public MDX article system.",
+      publicationReadyLabel: "Publication ready",
+      publicationSlugLabel: "Publication slug",
+      publishedAtLabel: "Published at",
+      savePublicationLabel: "Save publication settings",
+      savingPublicationLabel: "Saving publication settings...",
+    },
   },
   zh: {
     submitTemplatesCtaLabel: "查看投稿模板",
@@ -317,6 +404,53 @@ const copy: Localized<Phase2Copy> = {
       allStatuses: "全部活跃状态",
       allLanguages: "全部语言",
       applyFiltersLabel: "应用筛选",
+    },
+    review: {
+      sectionTitle: "审稿意见",
+      sectionBody:
+        "为编辑团队提交建议，同时填写给作者的公开意见，以及仅供编辑参考的保密备注。",
+      recommendationLabel: "审稿建议",
+      commentsToAuthorLabel: "给作者的意见",
+      commentsToEditorLabel: "给编辑的备注",
+      saveLabel: "保存审稿意见",
+      savingLabel: "保存中...",
+      empty: "目前还没有提交审稿意见。",
+    },
+    reviewer: {
+      assignedTitle: "分配稿件",
+      assignedBody:
+        "这些稿件仅因被分配到你的审稿台而对你可见。",
+      accessNote:
+        "审稿人只能访问被分配稿件及其文件，稿件状态仍由编辑控制。",
+      reviewNote:
+        "你的建议会为编辑决定提供依据，但不会直接改变稿件状态。",
+      activeAssignmentsLabel: "进行中任务",
+      completedAssignmentsLabel: "已完成审稿",
+    },
+    editorialReview: {
+      assignmentTitle: "审稿分配",
+      assignmentBody:
+        "在同一界面中分配审稿人、跟踪完成情况，并整理编辑决定流程。",
+      assignLabel: "分配审稿人",
+      assigningLabel: "分配中...",
+      removeLabel: "移除",
+      removeConfirmLabel: "移除分配",
+      noAssignments: "目前还没有分配审稿人。",
+      receivedReviewsTitle: "已收审稿意见",
+      receivedReviewsBody:
+        "审稿建议与评论会汇总在这里，供编辑做最终判断。",
+      noReviews: "目前还没有收到审稿意见。",
+      summaryTitle: "审稿摘要",
+      summaryReceived: "已收",
+      summaryOutstanding: "待收",
+      publicationTitle: "出版准备基础",
+      publicationBody:
+        "对于已接收稿件，可以先标记为进入出版准备，而不改变当前公开 MDX 文章系统。",
+      publicationReadyLabel: "可进入出版准备",
+      publicationSlugLabel: "出版 slug",
+      publishedAtLabel: "发布时间",
+      savePublicationLabel: "保存出版设置",
+      savingPublicationLabel: "保存中...",
     },
   },
 };

@@ -59,6 +59,17 @@ type EditorCopy = {
   acceptedCountLabel: string;
 };
 
+type ReviewerCopy = {
+  title: string;
+  intro: string;
+  overviewTitle: string;
+  assignmentsTitle: string;
+  emptyTitle: string;
+  emptyBody: string;
+  activeCountLabel: string;
+  completedCountLabel: string;
+};
+
 type SubmissionCopy = {
   submissionsTitle: string;
   submissionsIntro: string;
@@ -115,6 +126,7 @@ type PlatformCopy = {
   signUp: AuthPageCopy;
   dashboard: DashboardCopy;
   editor: EditorCopy;
+  reviewer: ReviewerCopy;
   submission: SubmissionCopy;
 };
 
@@ -193,6 +205,17 @@ const copy: Localized<PlatformCopy> = {
       reviewCountLabel: "Under review",
       revisionCountLabel: "Revision requested",
       acceptedCountLabel: "Accepted",
+    },
+    reviewer: {
+      title: "Reviewer desk",
+      intro:
+        "Read the manuscripts assigned to you, access submission files and record recommendations for the editorial team.",
+      overviewTitle: "Review overview",
+      assignmentsTitle: "Assigned submissions",
+      emptyTitle: "No review assignments",
+      emptyBody: "New assignments will appear here once an editor sends them to your reviewer desk.",
+      activeCountLabel: "Active",
+      completedCountLabel: "Completed",
     },
     submission: {
       submissionsTitle: "Submissions",
@@ -330,6 +353,17 @@ const copy: Localized<PlatformCopy> = {
       reviewCountLabel: "审阅中",
       revisionCountLabel: "需修改",
       acceptedCountLabel: "已接收",
+    },
+    reviewer: {
+      title: "审稿台",
+      intro:
+        "阅读分配给你的稿件、访问投稿文件，并为编辑团队记录审稿建议。",
+      overviewTitle: "审稿概览",
+      assignmentsTitle: "分配稿件",
+      emptyTitle: "当前没有审稿任务",
+      emptyBody: "编辑分配后，新的稿件会出现在这里。",
+      activeCountLabel: "进行中",
+      completedCountLabel: "已完成",
     },
     submission: {
       submissionsTitle: "稿件",

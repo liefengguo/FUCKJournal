@@ -176,6 +176,16 @@ export default async function EditorSubmissionsPage({
                               ? "无稿件文件"
                               : "No manuscript file"}
                         </span>
+                        <span>
+                          {locale === "zh" ? "审稿人" : "Reviewers"}:{" "}
+                          {submission._count.reviewerAssignments}
+                        </span>
+                        <span>
+                          {locale === "zh" ? "审稿意见" : "Reviews"}: {submission._count.reviews}
+                        </span>
+                        {submission.isPublicationReady ? (
+                          <span>{locale === "zh" ? "可出版准备" : "Publication ready"}</span>
+                        ) : null}
                       </div>
                     </div>
                     <div className="flex flex-col gap-3 sm:items-end">
