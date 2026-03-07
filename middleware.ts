@@ -9,9 +9,10 @@ import {
   isAuthPath,
   isDashboardPath,
   isEditorPath,
+  isReviewerPath,
   parseLocalizedPath,
 } from "@/lib/auth-routing";
-import { isStaffRole } from "@/lib/submission-status";
+import { isReviewerRole, isStaffRole } from "@/lib/submission-status";
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -24,7 +25,8 @@ export default async function middleware(request: NextRequest) {
     return intlResponse;
   }
 
-  const needsAuth = isDashboardPath(pathname) || isEditorPath(pathname);
+  const needsAuth =
+    isDashboardPath(pathname) || isEditorPath(pathname) || isReviewerPath(pathname);
 
   if (!needsAuth && !isAuthPath(pathname)) {
     return intlResponse;
@@ -61,9 +63,21 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
+  if (isDashboardPath(pathname) && isReviewerRole(role)) {
+    const redirectUrl = new URL(destination, url);
+    redirectUrl.searchParams.set("notice", "reviewer-only");
+    return NextResponse.redirect(redirectUrl);
+  }
+
   if (isEditorPath(pathname) && !isStaffRole(role)) {
     const redirectUrl = new URL(destination, url);
     redirectUrl.searchParams.set("notice", "editor-only");
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  if (isReviewerPath(pathname) && !isReviewerRole(role)) {
+    const redirectUrl = new URL(destination, url);
+    redirectUrl.searchParams.set("notice", "reviewer-only");
     return NextResponse.redirect(redirectUrl);
   }
 

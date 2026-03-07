@@ -14,7 +14,8 @@ export type AuthFeedbackCode =
   | "forbidden-origin"
   | "already-authenticated"
   | "registration-unavailable"
-  | "editor-only";
+  | "editor-only"
+  | "reviewer-only";
 
 export type SubmissionFeedbackCode =
   | "created"
@@ -23,6 +24,10 @@ export type SubmissionFeedbackCode =
   | "updated"
   | "asset-uploaded"
   | "note-added"
+  | "reviewer-assigned"
+  | "reviewer-removed"
+  | "review-saved"
+  | "publication-updated"
   | "submission-not-found"
   | "asset-not-found"
   | "public-id-generation-failed"
@@ -47,7 +52,18 @@ export type SubmissionFeedbackCode =
   | "upload-failed"
   | "download-failed"
   | "invalid-editor-note"
-  | "internal-note-failed";
+  | "internal-note-failed"
+  | "reviewer-not-assigned"
+  | "reviewer-already-assigned"
+  | "invalid-review-input"
+  | "review-save-failed"
+  | "reviewer-assignment-failed"
+  | "reviewer-removal-failed"
+  | "invalid-reviewer"
+  | "publication-not-allowed"
+  | "invalid-publication-input"
+  | "publication-update-failed"
+  | "review-closed";
 
 type VersionLabelCode =
   | "Draft Created"
@@ -69,6 +85,7 @@ const authFeedback: Localized<Record<AuthFeedbackCode, string>> = {
     "already-authenticated": "You are already signed in.",
     "registration-unavailable": "Unable to create an account right now.",
     "editor-only": "Editorial routes are available only to editor and admin accounts.",
+    "reviewer-only": "Reviewer routes are available only to reviewer accounts.",
   },
   zh: {
     "auth-required": "请先登录后再进入投稿平台。",
@@ -82,18 +99,37 @@ const authFeedback: Localized<Record<AuthFeedbackCode, string>> = {
     "already-authenticated": "你已经登录。",
     "registration-unavailable": "暂时无法创建账户。",
     "editor-only": "编辑台仅对编辑和管理员开放。",
+    "reviewer-only": "审稿后台仅对审稿人账户开放。",
   },
 };
 
 const submissionFeedback: Localized<{
   notices: Record<
-    "created" | "saved" | "submitted" | "updated" | "asset-uploaded" | "note-added",
+    | "created"
+    | "saved"
+    | "submitted"
+    | "updated"
+    | "asset-uploaded"
+    | "note-added"
+    | "reviewer-assigned"
+    | "reviewer-removed"
+    | "review-saved"
+    | "publication-updated",
     string
   >;
   errors: Record<
     Exclude<
       SubmissionFeedbackCode,
-      "created" | "saved" | "submitted" | "updated" | "asset-uploaded" | "note-added"
+      | "created"
+      | "saved"
+      | "submitted"
+      | "updated"
+      | "asset-uploaded"
+      | "note-added"
+      | "reviewer-assigned"
+      | "reviewer-removed"
+      | "review-saved"
+      | "publication-updated"
     >,
     string
   >;
@@ -112,6 +148,10 @@ const submissionFeedback: Localized<{
       updated: "Submission status updated.",
       "asset-uploaded": "File uploaded successfully.",
       "note-added": "Internal editor note added.",
+      "reviewer-assigned": "Reviewer assigned.",
+      "reviewer-removed": "Reviewer assignment removed.",
+      "review-saved": "Review saved.",
+      "publication-updated": "Publication settings updated.",
     },
     errors: {
       "submission-not-found": "The requested submission could not be found.",
@@ -150,6 +190,23 @@ const submissionFeedback: Localized<{
       "invalid-editor-note":
         "Internal notes should be between 5 and 5000 characters.",
       "internal-note-failed": "Unable to save the internal editor note.",
+      "reviewer-not-assigned":
+        "This reviewer does not currently have access to the submission.",
+      "reviewer-already-assigned":
+        "This reviewer is already assigned to the submission.",
+      "invalid-review-input":
+        "Please provide a valid review recommendation and comments.",
+      "review-save-failed": "Unable to save the review.",
+      "reviewer-assignment-failed": "Unable to assign the reviewer.",
+      "reviewer-removal-failed": "Unable to remove the reviewer assignment.",
+      "invalid-reviewer": "Select a valid reviewer account.",
+      "publication-not-allowed":
+        "Only accepted submissions can be marked as publication-ready.",
+      "invalid-publication-input":
+        "Please provide valid publication settings and a clean slug.",
+      "publication-update-failed": "Unable to update publication settings.",
+      "review-closed":
+        "Reviews can be submitted only while the manuscript is under review.",
     },
     timelineEmpty:
       "No status events have been recorded yet. The submission remains in its current state.",
@@ -171,6 +228,10 @@ const submissionFeedback: Localized<{
       updated: "稿件状态已更新。",
       "asset-uploaded": "文件上传成功。",
       "note-added": "内部编辑备注已添加。",
+      "reviewer-assigned": "审稿人已分配。",
+      "reviewer-removed": "审稿分配已移除。",
+      "review-saved": "审稿意见已保存。",
+      "publication-updated": "出版准备设置已更新。",
     },
     errors: {
       "submission-not-found": "未找到对应稿件。",
@@ -198,6 +259,17 @@ const submissionFeedback: Localized<{
       "download-failed": "暂时无法下载该文件。",
       "invalid-editor-note": "内部备注长度应在 5 到 5000 个字符之间。",
       "internal-note-failed": "暂时无法保存内部编辑备注。",
+      "reviewer-not-assigned": "这位审稿人当前没有该稿件的访问权限。",
+      "reviewer-already-assigned": "这位审稿人已经被分配到该稿件。",
+      "invalid-review-input": "请填写有效的审稿建议和意见。",
+      "review-save-failed": "暂时无法保存审稿意见。",
+      "reviewer-assignment-failed": "暂时无法分配审稿人。",
+      "reviewer-removal-failed": "暂时无法移除审稿分配。",
+      "invalid-reviewer": "请选择有效的审稿人账户。",
+      "publication-not-allowed": "只有已接收稿件才能标记为可进入出版准备。",
+      "invalid-publication-input": "请填写有效的出版设置与规范 slug。",
+      "publication-update-failed": "暂时无法更新出版准备设置。",
+      "review-closed": "只有在稿件处于审稿中时才能提交审稿意见。",
     },
     timelineEmpty: "当前还没有状态事件记录，稿件会保持在现有状态。",
     timelineEmptyDraft: "当前还没有状态事件记录，稿件仍处于草稿阶段。",

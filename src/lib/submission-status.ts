@@ -1,4 +1,9 @@
-import type { SubmissionStatus, UserRole } from "@prisma/client";
+import type {
+  ReviewDecision,
+  ReviewerAssignmentStatus,
+  SubmissionStatus,
+  UserRole,
+} from "@prisma/client";
 
 import type { Locale } from "@/i18n/routing";
 
@@ -8,9 +13,14 @@ export const userEditableStatuses: SubmissionStatus[] = [
 ];
 
 export const staffRoles: UserRole[] = ["EDITOR", "ADMIN"];
+export const reviewerRoles: UserRole[] = ["REVIEWER"];
 
 export function isStaffRole(role: UserRole) {
   return staffRoles.includes(role);
+}
+
+export function isReviewerRole(role: UserRole) {
+  return reviewerRoles.includes(role);
 }
 
 export function canAuthorEditStatus(status: SubmissionStatus) {
@@ -24,7 +34,7 @@ export function canAuthorSubmitStatus(status: SubmissionStatus) {
 export function getEditorStatusTransitions(status: SubmissionStatus) {
   switch (status) {
     case "SUBMITTED":
-      return ["UNDER_REVIEW", "REVISION_REQUESTED", "ACCEPTED", "REJECTED"] as SubmissionStatus[];
+      return ["UNDER_REVIEW", "REJECTED"] as SubmissionStatus[];
     case "UNDER_REVIEW":
       return ["REVISION_REQUESTED", "ACCEPTED", "REJECTED"] as SubmissionStatus[];
     case "REVISION_REQUESTED":
@@ -32,8 +42,6 @@ export function getEditorStatusTransitions(status: SubmissionStatus) {
     case "ACCEPTED":
     case "REJECTED":
       return [] as SubmissionStatus[];
-    case "DRAFT":
-      return ["SUBMITTED"] as SubmissionStatus[];
     default:
       return [] as SubmissionStatus[];
   }
@@ -56,6 +64,45 @@ export function getSubmissionStatusLabel(status: SubmissionStatus, locale: Local
       REVISION_REQUESTED: "需修改",
       ACCEPTED: "已接收",
       REJECTED: "已拒稿",
+    },
+  };
+
+  return labels[locale][status];
+}
+
+export function getReviewDecisionLabel(decision: ReviewDecision, locale: Locale) {
+  const labels: Record<Locale, Record<ReviewDecision, string>> = {
+    en: {
+      ACCEPT: "Accept",
+      MINOR_REVISION: "Minor revision",
+      MAJOR_REVISION: "Major revision",
+      REJECT: "Reject",
+    },
+    zh: {
+      ACCEPT: "接收",
+      MINOR_REVISION: "小修",
+      MAJOR_REVISION: "大修",
+      REJECT: "拒绝",
+    },
+  };
+
+  return labels[locale][decision];
+}
+
+export function getReviewerAssignmentStatusLabel(
+  status: ReviewerAssignmentStatus,
+  locale: Locale,
+) {
+  const labels: Record<Locale, Record<ReviewerAssignmentStatus, string>> = {
+    en: {
+      ACTIVE: "Active",
+      COMPLETED: "Completed",
+      REMOVED: "Removed",
+    },
+    zh: {
+      ACTIVE: "进行中",
+      COMPLETED: "已完成",
+      REMOVED: "已移除",
     },
   };
 

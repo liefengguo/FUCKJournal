@@ -9,6 +9,7 @@ datasource db {
 
 enum UserRole {
   USER
+  REVIEWER
   EDITOR
   ADMIN
 }
@@ -22,18 +23,34 @@ enum SubmissionStatus {
   REJECTED
 }
 
+enum ReviewerAssignmentStatus {
+  ACTIVE
+  COMPLETED
+  REMOVED
+}
+
+enum ReviewDecision {
+  ACCEPT
+  MINOR_REVISION
+  MAJOR_REVISION
+  REJECT
+}
+
 model User {
-  id               String                  @id @default(cuid())
-  name             String?
-  email            String                  @unique
-  passwordHash     String
-  role             UserRole                @default(USER)
-  createdAt        DateTime                @default(now())
-  updatedAt        DateTime                @updatedAt
-  submissions      Submission[]
-  versionSnapshots SubmissionVersion[]
-  statusEvents     SubmissionStatusEvent[]
-  internalNotes    InternalEditorNote[]
+  id                         String                  @id @default(cuid())
+  name                       String?
+  email                      String                  @unique
+  passwordHash               String
+  role                       UserRole                @default(USER)
+  createdAt                  DateTime                @default(now())
+  updatedAt                  DateTime                @updatedAt
+  submissions                Submission[]
+  versionSnapshots           SubmissionVersion[]
+  statusEvents               SubmissionStatusEvent[]
+  internalNotes              InternalEditorNote[]
+  reviewerAssignments        ReviewerAssignment[]    @relation("ReviewerAssignments")
+  reviewerAssignmentsCreated ReviewerAssignment[]    @relation("ReviewerAssigner")
+  reviews                    Review[]                @relation("ReviewerReviews")
 }
 
 model Submission {
@@ -60,6 +77,9 @@ model Submission {
   sourceArchiveMimeType        String?
   sourceArchiveSizeBytes       Int?
   status                       SubmissionStatus        @default(DRAFT)
+  isPublicationReady           Boolean                 @default(false)
+  publicationSlug              String?                 @unique
+  publishedAt                  DateTime?
   submittedAt                  DateTime?
   createdAt                    DateTime                @default(now())
   updatedAt                    DateTime                @updatedAt
@@ -67,6 +87,8 @@ model Submission {
   versions                     SubmissionVersion[]
   statusEvents                 SubmissionStatusEvent[]
   internalNotes                InternalEditorNote[]
+  reviewerAssignments          ReviewerAssignment[]
+  reviews                      Review[]
 
   @@index([authorId, status])
   @@index([status, updatedAt])
@@ -132,4 +154,43 @@ model InternalEditorNote {
   author       User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([submissionId, createdAt])
+}
+
+model ReviewerAssignment {
+  id           String                   @id @default(cuid())
+  submissionId String
+  reviewerId   String
+  assignedById String
+  status       ReviewerAssignmentStatus @default(ACTIVE)
+  invitedAt    DateTime                 @default(now())
+  respondedAt  DateTime?
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+  submission   Submission               @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  reviewer     User                     @relation("ReviewerAssignments", fields: [reviewerId], references: [id], onDelete: Cascade)
+  assignedBy   User                     @relation("ReviewerAssigner", fields: [assignedById], references: [id], onDelete: Cascade)
+  review       Review?
+
+  @@unique([submissionId, reviewerId])
+  @@index([reviewerId, status, updatedAt])
+  @@index([submissionId, status])
+}
+
+model Review {
+  id                   String             @id @default(cuid())
+  submissionId         String
+  reviewerId           String
+  reviewerAssignmentId String             @unique
+  decision             ReviewDecision
+  commentsToAuthor     String?            @db.Text
+  commentsToEditor     String?            @db.Text
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  submission           Submission         @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  reviewer             User               @relation("ReviewerReviews", fields: [reviewerId], references: [id], onDelete: Cascade)
+  reviewerAssignment   ReviewerAssignment @relation(fields: [reviewerAssignmentId], references: [id], onDelete: Cascade)
+
+  @@unique([submissionId, reviewerId])
+  @@index([submissionId, updatedAt])
+  @@index([reviewerId, updatedAt])
 }

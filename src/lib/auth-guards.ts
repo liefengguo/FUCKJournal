@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getServerAuthSession } from "@/auth";
 import type { Locale } from "@/i18n/routing";
 import { getRoleHomePath } from "@/lib/auth-routing";
-import { isStaffRole } from "@/lib/submission-status";
+import { isReviewerRole, isStaffRole } from "@/lib/submission-status";
 
 function buildSignInUrl(locale: Locale, callbackUrl: string) {
   const searchParams = new URLSearchParams({
@@ -33,7 +33,7 @@ export async function requireContributorUser(
 ) {
   const user = await requireAuthenticatedUser(locale, callbackUrl);
 
-  if (isStaffRole(user.role)) {
+  if (isStaffRole(user.role) || isReviewerRole(user.role)) {
     redirect(getRoleHomePath(locale, user.role));
   }
 
@@ -48,6 +48,19 @@ export async function requireEditorUser(
 
   if (!isStaffRole(user.role)) {
     redirect(`/${locale}/dashboard?notice=editor-only`);
+  }
+
+  return user;
+}
+
+export async function requireReviewerUser(
+  locale: Locale,
+  callbackUrl = `/${locale}/reviewer`,
+) {
+  const user = await requireAuthenticatedUser(locale, callbackUrl);
+
+  if (!isReviewerRole(user.role)) {
+    redirect(getRoleHomePath(locale, user.role));
   }
 
   return user;

@@ -1,6 +1,15 @@
-import type { Submission, UserRole } from "@prisma/client";
+import type {
+  ReviewerAssignmentStatus,
+  Submission,
+  UserRole,
+} from "@prisma/client";
 
-import { canAuthorEditStatus, canAuthorSubmitStatus, isStaffRole } from "@/lib/submission-status";
+import {
+  canAuthorEditStatus,
+  canAuthorSubmitStatus,
+  isReviewerRole,
+  isStaffRole,
+} from "@/lib/submission-status";
 
 type Viewer = {
   id: string;
@@ -10,6 +19,10 @@ type Viewer = {
 export function canUserViewSubmission(viewer: Viewer, submission: Submission) {
   if (isStaffRole(viewer.role)) {
     return submission.status !== "DRAFT";
+  }
+
+  if (isReviewerRole(viewer.role)) {
+    return false;
   }
 
   return submission.authorId === viewer.id;
@@ -33,4 +46,20 @@ export function canUserSubmitSubmission(viewer: Viewer, submission: Submission) 
 
 export function canUserUpdateSubmissionStatus(role: UserRole) {
   return isStaffRole(role);
+}
+
+export function canUserManageReviewAssignments(role: UserRole) {
+  return isStaffRole(role);
+}
+
+export function canUserManagePublication(role: UserRole) {
+  return isStaffRole(role);
+}
+
+export function canUserSubmitReview(role: UserRole) {
+  return isReviewerRole(role);
+}
+
+export function canReviewerAccessAssignment(status: ReviewerAssignmentStatus) {
+  return status === "ACTIVE" || status === "COMPLETED";
 }

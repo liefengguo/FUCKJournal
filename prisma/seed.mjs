@@ -8,6 +8,8 @@ const defaults = {
   userPassword: process.env.SEED_TEST_USER_PASSWORD ?? "Phase1User123!",
   editorEmail: process.env.SEED_TEST_EDITOR_EMAIL ?? "editor@fuckjournal.local",
   editorPassword: process.env.SEED_TEST_EDITOR_PASSWORD ?? "Phase1Editor123!",
+  reviewerEmail: process.env.SEED_TEST_REVIEWER_EMAIL ?? "reviewer@fuckjournal.local",
+  reviewerPassword: process.env.SEED_TEST_REVIEWER_PASSWORD ?? "Phase3Reviewer123!",
 };
 
 async function maybeSeedUser(role, email, password, name) {
@@ -52,6 +54,13 @@ async function main() {
   );
 
   await maybeSeedUser(
+    UserRole.REVIEWER,
+    defaults.reviewerEmail,
+    defaults.reviewerPassword,
+    "Test Reviewer",
+  );
+
+  await maybeSeedUser(
     UserRole.ADMIN,
     process.env.SEED_ADMIN_EMAIL,
     process.env.SEED_ADMIN_PASSWORD,
@@ -60,6 +69,7 @@ async function main() {
 
   console.log("Seed accounts ready:");
   console.log(`- USER: ${defaults.userEmail} / ${defaults.userPassword}`);
+  console.log(`- REVIEWER: ${defaults.reviewerEmail} / ${defaults.reviewerPassword}`);
   console.log(`- EDITOR: ${defaults.editorEmail} / ${defaults.editorPassword}`);
 }
 

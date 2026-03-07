@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 
 import type {
   Prisma,
+  ReviewerAssignmentStatus,
   SubmissionStatus,
   UserRole,
 } from "@prisma/client";
@@ -9,8 +10,13 @@ import { ZodError } from "zod";
 
 import { db } from "@/lib/db";
 import type { SubmissionFeedbackCode } from "@/lib/feedback";
+import { sendNotification } from "@/lib/notifications";
 import {
+  canReviewerAccessAssignment,
   canUserEditSubmission,
+  canUserManagePublication,
+  canUserManageReviewAssignments,
+  canUserSubmitReview,
   canUserSubmitSubmission,
   canUserUpdateSubmissionStatus,
   canUserViewSubmission,
@@ -21,6 +27,12 @@ import {
   storeSubmissionFile,
 } from "@/lib/storage";
 import { getEditorStatusTransitions } from "@/lib/submission-status";
+import {
+  publicationSettingsSchema,
+  reviewInputSchema,
+  reviewerAssignmentSchema,
+  type ReviewInput,
+} from "@/lib/validations/review";
 import {
   submissionDraftSchema,
   submitManuscriptSchema,
@@ -40,7 +52,16 @@ const submissionListSelect = {
   keywords: true,
   manuscriptFileName: true,
   sourceArchiveFileName: true,
+  isPublicationReady: true,
+  publicationSlug: true,
 } satisfies Prisma.SubmissionSelect;
+
+const personSelect = {
+  id: true,
+  name: true,
+  email: true,
+  role: true,
+} satisfies Prisma.UserSelect;
 
 const versionInclude = {
   createdBy: {
@@ -52,14 +73,27 @@ const versionInclude = {
   },
 } satisfies Prisma.SubmissionVersionInclude;
 
+const reviewInclude = {
+  reviewer: {
+    select: personSelect,
+  },
+} satisfies Prisma.ReviewInclude;
+
+const reviewerAssignmentInclude = {
+  reviewer: {
+    select: personSelect,
+  },
+  assignedBy: {
+    select: personSelect,
+  },
+  review: {
+    include: reviewInclude,
+  },
+} satisfies Prisma.ReviewerAssignmentInclude;
+
 const authorSubmissionInclude = {
   author: {
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-    },
+    select: personSelect,
   },
   versions: {
     orderBy: {
@@ -74,12 +108,7 @@ const authorSubmissionInclude = {
     },
     include: {
       actor: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          role: true,
-        },
+        select: personSelect,
       },
     },
   },
@@ -93,16 +122,48 @@ const editorSubmissionInclude = {
     },
     include: {
       author: {
+        select: personSelect,
+      },
+    },
+  },
+  reviewerAssignments: {
+    where: {
+      status: {
+        not: "REMOVED",
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    include: reviewerAssignmentInclude,
+  },
+  reviews: {
+    orderBy: {
+      updatedAt: "desc",
+    },
+    include: reviewInclude,
+  },
+} satisfies Prisma.SubmissionInclude;
+
+const reviewerQueueInclude = {
+  assignedBy: {
+    select: personSelect,
+  },
+  review: {
+    include: reviewInclude,
+  },
+  submission: {
+    select: {
+      ...submissionListSelect,
+      author: {
         select: {
-          id: true,
           name: true,
           email: true,
-          role: true,
         },
       },
     },
   },
-} satisfies Prisma.SubmissionInclude;
+} satisfies Prisma.ReviewerAssignmentInclude;
 
 export type SubmissionListItem = Prisma.SubmissionGetPayload<{
   select: typeof submissionListSelect;
@@ -116,9 +177,15 @@ export type EditorialSubmissionDetail = Prisma.SubmissionGetPayload<{
   include: typeof editorSubmissionInclude;
 }>;
 
+export type ReviewerQueueItem = Prisma.ReviewerAssignmentGetPayload<{
+  include: typeof reviewerQueueInclude;
+}>;
+
 type Viewer = {
   id: string;
   role: UserRole;
+  email?: string | null;
+  name?: string | null;
 };
 
 type SubmissionSnapshotSource = {
@@ -370,6 +437,68 @@ function getExistingAssetFields(
   };
 }
 
+function isAssignmentVisibleToReviewer(status: ReviewerAssignmentStatus) {
+  return canReviewerAccessAssignment(status);
+}
+
+function isReviewOpen(status: SubmissionStatus) {
+  return status === "UNDER_REVIEW";
+}
+
+async function notifyStatusChange(
+  submission: {
+    publicId: string;
+    status: SubmissionStatus;
+    author: { email: string; name: string | null };
+  },
+  previousStatus: SubmissionStatus,
+) {
+  await sendNotification({
+    type: "submission_status_changed",
+    submissionPublicId: submission.publicId,
+    recipients: [submission.author.email],
+    context: {
+      previousStatus,
+      nextStatus: submission.status,
+      authorEmail: submission.author.email,
+      authorName: submission.author.name,
+    },
+  });
+
+  if (submission.status === "REVISION_REQUESTED") {
+    await sendNotification({
+      type: "submission_revision_requested",
+      submissionPublicId: submission.publicId,
+      recipients: [submission.author.email],
+      context: {
+        authorEmail: submission.author.email,
+      },
+    });
+  }
+
+  if (submission.status === "ACCEPTED") {
+    await sendNotification({
+      type: "submission_accepted",
+      submissionPublicId: submission.publicId,
+      recipients: [submission.author.email],
+      context: {
+        authorEmail: submission.author.email,
+      },
+    });
+  }
+
+  if (submission.status === "REJECTED") {
+    await sendNotification({
+      type: "submission_rejected",
+      submissionPublicId: submission.publicId,
+      recipients: [submission.author.email],
+      context: {
+        authorEmail: submission.author.email,
+      },
+    });
+  }
+}
+
 export async function createDraftSubmission(authorId: string) {
   return db.$transaction(async (tx) => {
     const publicId = await generateSubmissionPublicId(tx);
@@ -433,6 +562,18 @@ export async function listEditorialSubmissions(filters?: {
           email: true,
         },
       },
+      _count: {
+        select: {
+          reviewerAssignments: {
+            where: {
+              status: {
+                not: "REMOVED",
+              },
+            },
+          },
+          reviews: true,
+        },
+      },
     },
     orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
   });
@@ -447,6 +588,56 @@ export async function getEditorialSubmissionDetail(publicId: string) {
       },
     },
     include: editorSubmissionInclude,
+  });
+}
+
+export async function listAvailableReviewers() {
+  return db.user.findMany({
+    where: {
+      role: "REVIEWER",
+    },
+    select: personSelect,
+    orderBy: [{ name: "asc" }, { email: "asc" }],
+  });
+}
+
+export async function listReviewerAssignments(reviewerId: string) {
+  return db.reviewerAssignment.findMany({
+    where: {
+      reviewerId,
+      status: {
+        in: ["ACTIVE", "COMPLETED"],
+      },
+    },
+    include: reviewerQueueInclude,
+    orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
+  });
+}
+
+export async function getReviewerAssignmentDetail(reviewerId: string, publicId: string) {
+  return db.reviewerAssignment.findFirst({
+    where: {
+      reviewerId,
+      status: {
+        in: ["ACTIVE", "COMPLETED"],
+      },
+      submission: {
+        publicId,
+      },
+    },
+    include: {
+      assignedBy: {
+        select: personSelect,
+      },
+      review: {
+        include: reviewInclude,
+      },
+      submission: {
+        include: {
+          ...authorSubmissionInclude,
+        },
+      },
+    },
   });
 }
 
@@ -524,9 +715,17 @@ export async function saveAuthorSubmissionDraft(
 }
 
 export async function submitAuthorSubmission(viewer: Viewer, publicId: string) {
-  return db.$transaction(async (tx) => {
+  const result = await db.$transaction(async (tx) => {
     const submission = await tx.submission.findUnique({
       where: { publicId },
+      include: {
+        author: {
+          select: {
+            email: true,
+            name: true,
+          },
+        },
+      },
     });
 
     if (!submission || submission.authorId !== viewer.id) {
@@ -567,6 +766,14 @@ export async function submitAuthorSubmission(viewer: Viewer, publicId: string) {
         status: "SUBMITTED",
         submittedAt: new Date(),
       },
+      include: {
+        author: {
+          select: {
+            email: true,
+            name: true,
+          },
+        },
+      },
     });
 
     await createVersionSnapshot(
@@ -587,8 +794,24 @@ export async function submitAuthorSubmission(viewer: Viewer, publicId: string) {
       },
     });
 
-    return updatedSubmission;
+    return {
+      previousStatus: submission.status,
+      submission: updatedSubmission,
+    };
   });
+
+  await sendNotification({
+    type: "submission_submitted",
+    submissionPublicId: result.submission.publicId,
+    recipients: [result.submission.author.email],
+    context: {
+      authorEmail: result.submission.author.email,
+      authorName: result.submission.author.name,
+      previousStatus: result.previousStatus,
+    },
+  });
+
+  return result.submission;
 }
 
 export async function replaceSubmissionAsset(
@@ -683,7 +906,25 @@ export async function getSubmissionAssetForViewer(
     where: { publicId },
   });
 
-  if (!submission || !canUserViewSubmission(viewer, submission)) {
+  if (!submission) {
+    throw new SubmissionError("submission-not-found");
+  }
+
+  if (viewer.role === "REVIEWER") {
+    const assignment = await db.reviewerAssignment.findFirst({
+      where: {
+        reviewerId: viewer.id,
+        submissionId: submission.id,
+      },
+      select: {
+        status: true,
+      },
+    });
+
+    if (!assignment || !isAssignmentVisibleToReviewer(assignment.status)) {
+      throw new SubmissionError("reviewer-not-assigned");
+    }
+  } else if (!canUserViewSubmission(viewer, submission)) {
     throw new SubmissionError("submission-not-found");
   }
 
@@ -740,15 +981,310 @@ export async function addInternalEditorNote(
     },
     include: {
       author: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          role: true,
-        },
+        select: personSelect,
       },
     },
   });
+}
+
+export async function assignReviewerToSubmission(
+  viewer: Viewer,
+  publicId: string,
+  reviewerId: string,
+) {
+  if (!canUserManageReviewAssignments(viewer.role)) {
+    throw new SubmissionError("status-update-forbidden");
+  }
+
+  let parsedReviewerId: string;
+
+  try {
+    parsedReviewerId = reviewerAssignmentSchema.parse({ reviewerId }).reviewerId;
+  } catch {
+    throw new SubmissionError("invalid-reviewer");
+  }
+
+  const result = await db.$transaction(async (tx) => {
+    const reviewer = await tx.user.findUnique({
+      where: { id: parsedReviewerId },
+      select: personSelect,
+    });
+
+    if (!reviewer || reviewer.role !== "REVIEWER") {
+      throw new SubmissionError("invalid-reviewer");
+    }
+
+    const submission = await tx.submission.findUnique({
+      where: { publicId },
+      include: {
+        author: {
+          select: {
+            email: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!submission || submission.status === "DRAFT") {
+      throw new SubmissionError("submission-not-found");
+    }
+
+    if (!["SUBMITTED", "UNDER_REVIEW"].includes(submission.status)) {
+      throw new SubmissionError("review-closed");
+    }
+
+    const existing = await tx.reviewerAssignment.findUnique({
+      where: {
+        submissionId_reviewerId: {
+          submissionId: submission.id,
+          reviewerId: reviewer.id,
+        },
+      },
+      include: {
+        review: true,
+      },
+    });
+
+    if (existing?.status === "ACTIVE") {
+      throw new SubmissionError("reviewer-already-assigned");
+    }
+
+    const now = new Date();
+
+    const assignment = existing
+      ? await tx.reviewerAssignment.update({
+          where: {
+            submissionId_reviewerId: {
+              submissionId: submission.id,
+              reviewerId: reviewer.id,
+            },
+          },
+          data: {
+            assignedById: viewer.id,
+            status: "ACTIVE",
+            invitedAt: now,
+            respondedAt: existing.respondedAt ?? now,
+          },
+          include: reviewerAssignmentInclude,
+        })
+      : await tx.reviewerAssignment.create({
+          data: {
+            submissionId: submission.id,
+            reviewerId: reviewer.id,
+            assignedById: viewer.id,
+            status: "ACTIVE",
+            invitedAt: now,
+            respondedAt: now,
+          },
+          include: reviewerAssignmentInclude,
+        });
+
+    return {
+      assignment,
+      reviewer,
+      submission,
+    };
+  });
+
+  await sendNotification({
+    type: "reviewer_assigned",
+    submissionPublicId: result.submission.publicId,
+    recipients: [result.reviewer.email],
+    context: {
+      reviewerEmail: result.reviewer.email,
+      reviewerName: result.reviewer.name,
+      assignedById: viewer.id,
+      authorEmail: result.submission.author.email,
+    },
+  });
+
+  return result.assignment;
+}
+
+export async function removeReviewerAssignment(
+  viewer: Viewer,
+  publicId: string,
+  reviewerId: string,
+) {
+  if (!canUserManageReviewAssignments(viewer.role)) {
+    throw new SubmissionError("status-update-forbidden");
+  }
+
+  return db.$transaction(async (tx) => {
+    const submission = await tx.submission.findUnique({
+      where: { publicId },
+      select: { id: true, status: true },
+    });
+
+    if (!submission || submission.status === "DRAFT") {
+      throw new SubmissionError("submission-not-found");
+    }
+
+    const assignment = await tx.reviewerAssignment.findUnique({
+      where: {
+        submissionId_reviewerId: {
+          submissionId: submission.id,
+          reviewerId,
+        },
+      },
+    });
+
+    if (!assignment || assignment.status === "REMOVED") {
+      throw new SubmissionError("reviewer-not-assigned");
+    }
+
+    return tx.reviewerAssignment.update({
+      where: {
+        submissionId_reviewerId: {
+          submissionId: submission.id,
+          reviewerId,
+        },
+      },
+      data: {
+        status: "REMOVED",
+      },
+      include: reviewerAssignmentInclude,
+    });
+  });
+}
+
+export async function saveReviewerReview(
+  viewer: Viewer,
+  publicId: string,
+  input: ReviewInput,
+) {
+  if (!canUserSubmitReview(viewer.role)) {
+    throw new SubmissionError("status-update-forbidden");
+  }
+
+  let parsedInput: ReviewInput;
+
+  try {
+    parsedInput = reviewInputSchema.parse(input);
+  } catch {
+    throw new SubmissionError("invalid-review-input");
+  }
+
+  return db.$transaction(async (tx) => {
+    const assignment = await tx.reviewerAssignment.findFirst({
+      where: {
+        reviewerId: viewer.id,
+        status: {
+          in: ["ACTIVE", "COMPLETED"],
+        },
+        submission: {
+          publicId,
+        },
+      },
+      include: {
+        submission: {
+          select: {
+            id: true,
+            status: true,
+          },
+        },
+      },
+    });
+
+    if (!assignment || !isAssignmentVisibleToReviewer(assignment.status)) {
+      throw new SubmissionError("reviewer-not-assigned");
+    }
+
+    if (!isReviewOpen(assignment.submission.status)) {
+      throw new SubmissionError("review-closed");
+    }
+
+    const review = await tx.review.upsert({
+      where: {
+        submissionId_reviewerId: {
+          submissionId: assignment.submission.id,
+          reviewerId: viewer.id,
+        },
+      },
+      create: {
+        submissionId: assignment.submission.id,
+        reviewerId: viewer.id,
+        reviewerAssignmentId: assignment.id,
+        decision: parsedInput.decision,
+        commentsToAuthor: parsedInput.commentsToAuthor ?? null,
+        commentsToEditor: parsedInput.commentsToEditor ?? null,
+      },
+      update: {
+        decision: parsedInput.decision,
+        commentsToAuthor: parsedInput.commentsToAuthor ?? null,
+        commentsToEditor: parsedInput.commentsToEditor ?? null,
+      },
+      include: reviewInclude,
+    });
+
+    await tx.reviewerAssignment.update({
+      where: { id: assignment.id },
+      data: {
+        status: "COMPLETED",
+        respondedAt: new Date(),
+      },
+    });
+
+    return review;
+  });
+}
+
+export async function updatePublicationSettings(
+  viewer: Viewer,
+  publicId: string,
+  input: {
+    isPublicationReady: boolean;
+    publicationSlug: string | null;
+    publishedAt: string | null;
+  },
+) {
+  if (!canUserManagePublication(viewer.role)) {
+    throw new SubmissionError("status-update-forbidden");
+  }
+
+  const parsedInput = publicationSettingsSchema.safeParse(input);
+
+  if (!parsedInput.success) {
+    throw new SubmissionError("invalid-publication-input");
+  }
+
+  if (parsedInput.data.isPublicationReady && !parsedInput.data.publicationSlug) {
+    throw new SubmissionError("invalid-publication-input");
+  }
+
+  try {
+    return await db.$transaction(async (tx) => {
+      const submission = await tx.submission.findUnique({
+        where: { publicId },
+      });
+
+      if (!submission || submission.status === "DRAFT") {
+        throw new SubmissionError("submission-not-found");
+      }
+
+      if (submission.status !== "ACCEPTED") {
+        throw new SubmissionError("publication-not-allowed");
+      }
+
+      return tx.submission.update({
+        where: { id: submission.id },
+        data: {
+          isPublicationReady: parsedInput.data.isPublicationReady,
+          publicationSlug: parsedInput.data.publicationSlug ?? null,
+          publishedAt: parsedInput.data.publishedAt
+            ? new Date(parsedInput.data.publishedAt)
+            : null,
+        },
+      });
+    });
+  } catch (error) {
+    if (error instanceof SubmissionError) {
+      throw error;
+    }
+
+    throw new SubmissionError("publication-update-failed");
+  }
 }
 
 export async function updateEditorialSubmissionStatus(
@@ -761,9 +1297,17 @@ export async function updateEditorialSubmissionStatus(
     throw new SubmissionError("status-update-forbidden");
   }
 
-  return db.$transaction(async (tx) => {
+  const result = await db.$transaction(async (tx) => {
     const submission = await tx.submission.findUnique({
       where: { publicId },
+      include: {
+        author: {
+          select: {
+            email: true,
+            name: true,
+          },
+        },
+      },
     });
 
     if (!submission || submission.status === "DRAFT") {
@@ -780,6 +1324,20 @@ export async function updateEditorialSubmissionStatus(
       where: { id: submission.id },
       data: {
         status: nextStatus,
+        ...(nextStatus !== "ACCEPTED"
+          ? {
+              isPublicationReady: false,
+              publishedAt: null,
+            }
+          : {}),
+      },
+      include: {
+        author: {
+          select: {
+            email: true,
+            name: true,
+          },
+        },
       },
     });
 
@@ -793,6 +1351,13 @@ export async function updateEditorialSubmissionStatus(
       },
     });
 
-    return updatedSubmission;
+    return {
+      previousStatus: submission.status,
+      submission: updatedSubmission,
+    };
   });
+
+  await notifyStatusChange(result.submission, result.previousStatus);
+
+  return result.submission;
 }

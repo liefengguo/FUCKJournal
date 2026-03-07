@@ -2,7 +2,7 @@ import type { UserRole } from "@prisma/client";
 
 import type { Locale } from "@/i18n/routing";
 import { routing } from "@/i18n/routing";
-import { isStaffRole } from "@/lib/submission-status";
+import { isReviewerRole, isStaffRole } from "@/lib/submission-status";
 
 type ParsedPath = {
   locale: Locale | null;
@@ -40,12 +40,24 @@ export function isEditorPath(pathname: string) {
   return startsWithSegment(pathname, "/editor");
 }
 
+export function isReviewerPath(pathname: string) {
+  return startsWithSegment(pathname, "/reviewer");
+}
+
 export function isAuthPath(pathname: string) {
   return pathname === "/sign-in" || pathname === "/sign-up";
 }
 
 export function getRoleHomePath(locale: Locale, role: UserRole) {
-  return isStaffRole(role) ? `/${locale}/editor` : `/${locale}/dashboard`;
+  if (isStaffRole(role)) {
+    return `/${locale}/editor`;
+  }
+
+  if (isReviewerRole(role)) {
+    return `/${locale}/reviewer`;
+  }
+
+  return `/${locale}/dashboard`;
 }
 
 export function getSafeCallbackUrl(

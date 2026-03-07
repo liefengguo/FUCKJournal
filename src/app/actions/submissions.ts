@@ -8,17 +8,22 @@ import type { Locale } from "@/i18n/routing";
 import {
   requireContributorUser,
   requireEditorUser,
+  requireReviewerUser,
 } from "@/lib/auth-guards";
 import {
   addInternalEditorNote,
+  assignReviewerToSubmission,
   createDraftSubmission,
+  removeReviewerAssignment,
   saveAuthorSubmissionDraft,
+  saveReviewerReview,
   SubmissionError,
   submitAuthorSubmission,
   updateEditorialSubmissionStatus,
+  updatePublicationSettings,
 } from "@/lib/submissions";
-import { manuscriptLanguages } from "@/lib/validations/submission";
 import { getEditorStatusTransitions } from "@/lib/submission-status";
+import { manuscriptLanguages } from "@/lib/validations/submission";
 
 function getLocale(value: FormDataEntryValue | null): Locale {
   return value === "zh" ? "zh" : "en";
@@ -45,6 +50,18 @@ function getKeywords(formData: FormData) {
     .split(",")
     .map((keyword) => keyword.trim())
     .filter(Boolean);
+}
+
+function revalidateEditorAndReviewerPaths(locale: Locale, publicId?: string) {
+  revalidatePath(`/${locale}/editor`);
+  revalidatePath(`/${locale}/editor/submissions`);
+  revalidatePath(`/${locale}/reviewer`);
+  revalidatePath(`/${locale}/reviewer/submissions`);
+
+  if (publicId) {
+    revalidatePath(`/${locale}/editor/submissions/${publicId}`);
+    revalidatePath(`/${locale}/reviewer/submissions/${publicId}`);
+  }
 }
 
 export async function createDraftAction(formData: FormData) {
@@ -160,6 +177,37 @@ export async function saveDraftAction(formData: FormData) {
   }
 }
 
+export async function submitDraftAction(formData: FormData) {
+  const locale = getLocale(formData.get("locale"));
+  const publicId = getFormString(formData, "publicId");
+  const user = await requireContributorUser(
+    locale,
+    `/${locale}/dashboard/submissions/${publicId}/edit`,
+  );
+
+  try {
+    await submitAuthorSubmission(user, publicId);
+
+    revalidatePath(`/${locale}/dashboard`);
+    revalidatePath(`/${locale}/dashboard/submissions`);
+    revalidatePath(`/${locale}/dashboard/submissions/${publicId}`);
+    revalidateEditorAndReviewerPaths(locale, publicId);
+    redirect(
+      buildNoticeUrl(
+        `/${locale}/dashboard/submissions/${publicId}`,
+        "notice",
+        "submitted",
+      ),
+    );
+  } catch (error) {
+    const message =
+      error instanceof SubmissionError ? error.code : "draft-submit-failed";
+    redirect(
+      buildNoticeUrl(`/${locale}/dashboard/submissions/${publicId}/edit`, "error", message),
+    );
+  }
+}
+
 export async function addInternalNoteAction(formData: FormData) {
   const locale = getLocale(formData.get("locale"));
   const publicId = getFormString(formData, "publicId");
@@ -184,33 +232,140 @@ export async function addInternalNoteAction(formData: FormData) {
   }
 }
 
-export async function submitDraftAction(formData: FormData) {
+export async function assignReviewerAction(formData: FormData) {
   const locale = getLocale(formData.get("locale"));
   const publicId = getFormString(formData, "publicId");
-  const user = await requireContributorUser(
+  const reviewerId = getFormString(formData, "reviewerId");
+  const user = await requireEditorUser(
     locale,
-    `/${locale}/dashboard/submissions/${publicId}/edit`,
+    `/${locale}/editor/submissions/${publicId}`,
   );
 
   try {
-    await submitAuthorSubmission(user, publicId);
-
-    revalidatePath(`/${locale}/dashboard`);
-    revalidatePath(`/${locale}/dashboard/submissions`);
-    revalidatePath(`/${locale}/editor`);
-    revalidatePath(`/${locale}/editor/submissions`);
+    await assignReviewerToSubmission(user, publicId, reviewerId);
+    revalidateEditorAndReviewerPaths(locale, publicId);
     redirect(
       buildNoticeUrl(
-        `/${locale}/dashboard/submissions/${publicId}`,
+        `/${locale}/editor/submissions/${publicId}`,
         "notice",
-        "submitted",
+        "reviewer-assigned",
       ),
     );
   } catch (error) {
     const message =
-      error instanceof SubmissionError ? error.code : "draft-submit-failed";
+      error instanceof SubmissionError ? error.code : "reviewer-assignment-failed";
     redirect(
-      buildNoticeUrl(`/${locale}/dashboard/submissions/${publicId}/edit`, "error", message),
+      buildNoticeUrl(`/${locale}/editor/submissions/${publicId}`, "error", message),
+    );
+  }
+}
+
+export async function removeReviewerAssignmentAction(formData: FormData) {
+  const locale = getLocale(formData.get("locale"));
+  const publicId = getFormString(formData, "publicId");
+  const reviewerId = getFormString(formData, "reviewerId");
+  const user = await requireEditorUser(
+    locale,
+    `/${locale}/editor/submissions/${publicId}`,
+  );
+
+  try {
+    await removeReviewerAssignment(user, publicId, reviewerId);
+    revalidateEditorAndReviewerPaths(locale, publicId);
+    redirect(
+      buildNoticeUrl(
+        `/${locale}/editor/submissions/${publicId}`,
+        "notice",
+        "reviewer-removed",
+      ),
+    );
+  } catch (error) {
+    const message =
+      error instanceof SubmissionError ? error.code : "reviewer-removal-failed";
+    redirect(
+      buildNoticeUrl(`/${locale}/editor/submissions/${publicId}`, "error", message),
+    );
+  }
+}
+
+export async function saveReviewerReviewAction(formData: FormData) {
+  const locale = getLocale(formData.get("locale"));
+  const publicId = getFormString(formData, "publicId");
+  const user = await requireReviewerUser(
+    locale,
+    `/${locale}/reviewer/submissions/${publicId}`,
+  );
+
+  try {
+    await saveReviewerReview(user, publicId, {
+      decision: getFormString(formData, "decision") as
+        | "ACCEPT"
+        | "MINOR_REVISION"
+        | "MAJOR_REVISION"
+        | "REJECT",
+      commentsToAuthor: getOptionalString(formData, "commentsToAuthor"),
+      commentsToEditor: getOptionalString(formData, "commentsToEditor"),
+    });
+
+    revalidateEditorAndReviewerPaths(locale, publicId);
+    redirect(
+      buildNoticeUrl(
+        `/${locale}/reviewer/submissions/${publicId}`,
+        "notice",
+        "review-saved",
+      ),
+    );
+  } catch (error) {
+    const message =
+      error instanceof SubmissionError ? error.code : "review-save-failed";
+    redirect(
+      buildNoticeUrl(`/${locale}/reviewer/submissions/${publicId}`, "error", message),
+    );
+  }
+}
+
+export async function updatePublicationSettingsAction(formData: FormData) {
+  const locale = getLocale(formData.get("locale"));
+  const publicId = getFormString(formData, "publicId");
+  const user = await requireEditorUser(
+    locale,
+    `/${locale}/editor/submissions/${publicId}`,
+  );
+
+  const publishedAt = getOptionalString(formData, "publishedAt");
+  const publishedAtIso =
+    publishedAt && Number.isNaN(new Date(publishedAt).getTime())
+      ? "__invalid__"
+      : publishedAt
+        ? new Date(publishedAt).toISOString()
+        : null;
+
+  if (publishedAtIso === "__invalid__") {
+    redirect(
+      buildNoticeUrl(`/${locale}/editor/submissions/${publicId}`, "error", "invalid-publication-input"),
+    );
+  }
+
+  try {
+    await updatePublicationSettings(user, publicId, {
+      isPublicationReady: formData.get("isPublicationReady") === "on",
+      publicationSlug: getOptionalString(formData, "publicationSlug"),
+      publishedAt: publishedAtIso,
+    });
+
+    revalidatePath(`/${locale}/editor/submissions/${publicId}`);
+    redirect(
+      buildNoticeUrl(
+        `/${locale}/editor/submissions/${publicId}`,
+        "notice",
+        "publication-updated",
+      ),
+    );
+  } catch (error) {
+    const message =
+      error instanceof SubmissionError ? error.code : "publication-update-failed";
+    redirect(
+      buildNoticeUrl(`/${locale}/editor/submissions/${publicId}`, "error", message),
     );
   }
 }
@@ -228,7 +383,6 @@ export async function updateSubmissionStatusAction(formData: FormData) {
 
   if (
     ![
-      "DRAFT",
       "SUBMITTED",
       "UNDER_REVIEW",
       "REVISION_REQUESTED",
@@ -258,10 +412,8 @@ export async function updateSubmissionStatusAction(formData: FormData) {
 
     await updateEditorialSubmissionStatus(user, publicId, nextStatus, note ?? undefined);
 
-    revalidatePath(`/${locale}/editor`);
-    revalidatePath(`/${locale}/editor/submissions`);
-    revalidatePath(`/${locale}/editor/submissions/${publicId}`);
     revalidatePath(`/${locale}/dashboard/submissions/${publicId}`);
+    revalidateEditorAndReviewerPaths(locale, publicId);
     redirect(
       buildNoticeUrl(`/${locale}/editor/submissions/${publicId}`, "notice", "updated"),
     );
