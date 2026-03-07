@@ -4,19 +4,20 @@ import { getArticleSlugs, getArticleBySlug } from "@/lib/articles";
 import { getAbsoluteUrl } from "@/lib/site";
 import { routing } from "@/i18n/routing";
 
-const staticRoutes = [
+export const dynamic = "force-static";
+
+const indexedRoutes = [
   "",
   "/articles",
   "/manifesto",
   "/submit",
-  "/community",
   "/about",
   "/contact",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const pageEntries = routing.locales.flatMap((locale) =>
-    staticRoutes.map((route) => ({
+    indexedRoutes.map((route) => ({
       url: getAbsoluteUrl(`/${locale}${route}`),
       lastModified: new Date(),
       changeFrequency: "weekly" as const,
