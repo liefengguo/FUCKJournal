@@ -4,11 +4,14 @@ import { unstable_noStore as noStore } from "next/cache";
 import { setRequestLocale } from "next-intl/server";
 
 import { SubmissionForm } from "@/components/submission-form";
+import { LocaleLink } from "@/components/locale-link";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Locale } from "@/i18n/routing";
 import { getCopy } from "@/lib/copy";
 import { createPageMetadata } from "@/lib/metadata";
+import { getSubmissionUiCopy } from "@/lib/submission-ui-copy";
 
 type SubmitPageProps = {
   params: {
@@ -37,6 +40,7 @@ export default function SubmitPage({ params }: SubmitPageProps) {
   noStore();
   setRequestLocale(locale);
   const copy = getCopy(locale);
+  const uiCopy = getSubmissionUiCopy(locale);
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-12">
@@ -80,6 +84,21 @@ export default function SubmitPage({ params }: SubmitPageProps) {
                   </Badge>
                 ))}
               </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="space-y-5 p-8">
+              <h2 className="font-display text-3xl">
+                {uiCopy.submitTemplatesCtaLabel}
+              </h2>
+              <p className="font-serif text-lg leading-relaxed text-muted-foreground">
+                {uiCopy.submitTemplatesCtaBody}
+              </p>
+              <Button asChild size="sm">
+                <LocaleLink locale={locale} href="/templates">
+                  {uiCopy.submitTemplatesCtaLabel}
+                </LocaleLink>
+              </Button>
             </CardContent>
           </Card>
         </div>

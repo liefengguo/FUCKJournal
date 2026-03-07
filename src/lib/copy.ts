@@ -120,9 +120,9 @@ const copy: Localized<SiteCopy> = {
         "Identity, feeling and the human condition",
         "Knowledge, technology and forms of inquiry",
       ],
-      uploadLabel: "Manuscript metadata",
+      uploadLabel: "Submission formats",
       uploadHint:
-        "File storage will be connected in a later phase. The submission workspace already records manuscript metadata and draft state.",
+        "Use the structured editor for drafting and revision, then attach manuscript PDF and source files inside the private workspace when needed.",
       submitLabel: "Open submission workspace",
     },
     community: {
@@ -258,8 +258,8 @@ const copy: Localized<SiteCopy> = {
         "身份、感受与人的处境",
         "知识、技术与研究形式",
       ],
-      uploadLabel: "稿件元数据",
-      uploadHint: "文件存储会在后续阶段接入；当前投稿工作区已经可以保存稿件元数据与草稿状态。",
+      uploadLabel: "投稿形式",
+      uploadHint: "你可以先在私有工作区中完成结构化写作与修改，再按需要附加稿件 PDF 和源文件。",
       submitLabel: "打开投稿工作区",
     },
     community: {

@@ -7,17 +7,18 @@ import { SignOutButton } from "@/components/auth/sign-out-button";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { FlashMessage } from "@/components/dashboard/flash-message";
 import { LocaleLink } from "@/components/locale-link";
+import { SubmissionFilePanel } from "@/components/submissions/submission-file-panel";
 import { SubmissionStatusBadge } from "@/components/submissions/submission-status-badge";
+import { SubmissionStructuredContent } from "@/components/submissions/submission-structured-content";
 import { SubmissionTimeline } from "@/components/submissions/submission-timeline";
+import { SubmissionVersionList } from "@/components/submissions/submission-version-list";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Locale } from "@/i18n/routing";
-import {
-  getSubmissionError,
-  getSubmissionNotice,
-} from "@/lib/feedback";
+import { getSubmissionError, getSubmissionNotice } from "@/lib/feedback";
 import { getPlatformCopy } from "@/lib/platform-copy";
 import { canAuthorEditStatus } from "@/lib/submission-status";
+import { getSubmissionUiCopy } from "@/lib/submission-ui-copy";
 import { getAuthorSubmissionDetail } from "@/lib/submissions";
 import { formatDate } from "@/lib/site";
 
@@ -72,9 +73,11 @@ export default async function SubmissionDetailPage({
   }
 
   const copy = getPlatformCopy(locale);
+  const uiCopy = getSubmissionUiCopy(locale);
   const canEdit = canAuthorEditStatus(submission.status);
   const notice = getSubmissionNotice(locale, searchParams?.notice);
   const errorMessage = getSubmissionError(locale, searchParams?.error);
+  const latestVersion = submission.versions[0]?.versionNumber ?? 1;
 
   return (
     <DashboardShell
@@ -108,7 +111,7 @@ export default async function SubmissionDetailPage({
       {notice ? <FlashMessage message={notice} /> : null}
       {errorMessage ? <FlashMessage message={errorMessage} tone="error" /> : null}
 
-      <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+      <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         <Card>
           <CardHeader className="space-y-4">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -122,9 +125,12 @@ export default async function SubmissionDetailPage({
               </div>
               <SubmissionStatusBadge locale={locale} status={submission.status} />
             </div>
+            <p className="font-serif text-lg leading-relaxed text-muted-foreground">
+              {uiCopy.fields.structureBody}
+            </p>
           </CardHeader>
           <CardContent className="space-y-8">
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-3">
               <div>
                 <p className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
                   {copy.submission.updatedLabel}
@@ -145,25 +151,24 @@ export default async function SubmissionDetailPage({
                       : "Not submitted"}
                 </p>
               </div>
+              <div>
+                <p className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                  {copy.submission.latestVersionLabel}
+                </p>
+                <p className="mt-2 font-serif text-lg">v{latestVersion}</p>
+              </div>
             </div>
 
-            <div>
-              <p className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                {copy.submission.abstractLabel}
-              </p>
-              <p className="mt-3 whitespace-pre-wrap font-serif text-lg leading-relaxed text-muted-foreground">
-                {submission.abstract || (locale === "zh" ? "暂无摘要。" : "No abstract yet.")}
-              </p>
-            </div>
-
-            <div>
-              <p className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                {copy.submission.coverLetterLabel}
-              </p>
-              <p className="mt-3 whitespace-pre-wrap font-serif text-lg leading-relaxed text-muted-foreground">
-                {submission.coverLetter || (locale === "zh" ? "暂无附信。" : "No cover letter yet.")}
-              </p>
-            </div>
+            <SubmissionStructuredContent
+              locale={locale}
+              abstract={submission.abstract}
+              keywords={submission.keywords}
+              coverLetter={submission.coverLetter}
+              introduction={submission.introduction}
+              mainContent={submission.mainContent}
+              conclusion={submission.conclusion}
+              references={submission.references}
+            />
           </CardContent>
         </Card>
 
@@ -175,7 +180,7 @@ export default async function SubmissionDetailPage({
                 {getGateBody(locale, submission.status)}
               </p>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
               <div>
                 <p className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
                   {copy.submission.languageLabel}
@@ -189,17 +194,53 @@ export default async function SubmissionDetailPage({
                   {copy.submission.fileNameLabel}
                 </p>
                 <p className="mt-2 font-serif text-lg">
-                  {submission.manuscriptFileName || (locale === "zh" ? "未填写" : "Not specified")}
+                  {submission.manuscriptFileName || (locale === "zh" ? "尚未上传" : "No file yet")}
                 </p>
               </div>
-              <div>
-                <p className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                  {copy.submission.latestVersionLabel}
-                </p>
-                <p className="mt-2 font-serif text-lg">
-                  {submission.versions[0]?.versionNumber ?? 1}
-                </p>
-              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="space-y-4">
+              <CardTitle>{uiCopy.uploads.sectionTitle}</CardTitle>
+              <p className="font-serif text-lg leading-relaxed text-muted-foreground">
+                {uiCopy.uploads.sectionBody}
+              </p>
+            </CardHeader>
+            <CardContent>
+              <SubmissionFilePanel
+                locale={locale}
+                publicId={publicId}
+                editable={false}
+                assets={[
+                  {
+                    kind: "manuscript",
+                    fileName: submission.manuscriptFileName,
+                    mimeType: submission.manuscriptMimeType,
+                    sizeBytes: submission.manuscriptSizeBytes,
+                    href: `/api/submissions/${publicId}/assets/manuscript`,
+                  },
+                  {
+                    kind: "source",
+                    fileName: submission.sourceArchiveFileName,
+                    mimeType: submission.sourceArchiveMimeType,
+                    sizeBytes: submission.sourceArchiveSizeBytes,
+                    href: `/api/submissions/${publicId}/assets/source`,
+                  },
+                ]}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="space-y-4">
+              <CardTitle>{uiCopy.versions.sectionTitle}</CardTitle>
+              <p className="font-serif text-lg leading-relaxed text-muted-foreground">
+                {uiCopy.versions.sectionBody}
+              </p>
+            </CardHeader>
+            <CardContent>
+              <SubmissionVersionList locale={locale} versions={submission.versions} />
             </CardContent>
           </Card>
 

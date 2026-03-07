@@ -11,7 +11,9 @@ import { SignOutButton } from "@/components/auth/sign-out-button";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { FlashMessage } from "@/components/dashboard/flash-message";
 import { LocaleLink } from "@/components/locale-link";
+import { SubmissionFilePanel } from "@/components/submissions/submission-file-panel";
 import { SubmissionStatusBadge } from "@/components/submissions/submission-status-badge";
+import { SubmissionVersionList } from "@/components/submissions/submission-version-list";
 import { Button } from "@/components/ui/button";
 import { FormSubmitButton } from "@/components/ui/form-submit-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +26,7 @@ import {
 } from "@/lib/feedback";
 import { getPlatformCopy } from "@/lib/platform-copy";
 import { canAuthorEditStatus } from "@/lib/submission-status";
+import { getSubmissionUiCopy } from "@/lib/submission-ui-copy";
 import { getAuthorSubmissionDetail } from "@/lib/submissions";
 import { manuscriptLanguages } from "@/lib/validations/submission";
 
@@ -57,6 +60,7 @@ export default async function EditSubmissionPage({
   }
 
   const copy = getPlatformCopy(locale);
+  const uiCopy = getSubmissionUiCopy(locale);
   const isEditable = canAuthorEditStatus(submission.status);
   const notice = getSubmissionNotice(locale, searchParams?.notice);
   const errorMessage = getSubmissionError(locale, searchParams?.error);
@@ -95,11 +99,13 @@ export default async function EditSubmissionPage({
         <Card>
           <CardHeader className="space-y-4">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <CardTitle>{submission.title || (locale === "zh" ? "未命名稿件" : "Untitled manuscript")}</CardTitle>
+              <CardTitle>
+                {submission.title || (locale === "zh" ? "未命名稿件" : "Untitled manuscript")}
+              </CardTitle>
               <SubmissionStatusBadge locale={locale} status={submission.status} />
             </div>
             <p className="font-serif text-lg leading-relaxed text-muted-foreground">
-              {copy.submission.metadataNote}
+              {uiCopy.fields.structureBody}
             </p>
           </CardHeader>
           <CardContent>
@@ -114,7 +120,6 @@ export default async function EditSubmissionPage({
                   name="title"
                   defaultValue={submission.title}
                   disabled={!isEditable}
-                  required
                 />
               </div>
               <div className="space-y-2">
@@ -125,8 +130,21 @@ export default async function EditSubmissionPage({
                   name="abstract"
                   defaultValue={submission.abstract ?? ""}
                   disabled={!isEditable}
-                  required
                 />
+              </div>
+              <div className="space-y-2">
+                <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                  {uiCopy.fields.keywordsLabel}
+                </label>
+                <Input
+                  name="keywords"
+                  defaultValue={submission.keywords.join(", ")}
+                  disabled={!isEditable}
+                  required={submission.status !== "DRAFT"}
+                />
+                <p className="font-serif text-base text-muted-foreground">
+                  {uiCopy.fields.keywordsHint}
+                </p>
               </div>
               <div className="space-y-2">
                 <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
@@ -138,6 +156,53 @@ export default async function EditSubmissionPage({
                   disabled={!isEditable}
                   className="min-h-[180px]"
                 />
+              </div>
+              <div className="space-y-2">
+                <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                  {uiCopy.fields.introductionLabel}
+                </label>
+                <Textarea
+                  name="introduction"
+                  defaultValue={submission.introduction ?? ""}
+                  disabled={!isEditable}
+                  className="min-h-[180px]"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                  {uiCopy.fields.mainContentLabel}
+                </label>
+                <Textarea
+                  name="mainContent"
+                  defaultValue={submission.mainContent ?? ""}
+                  disabled={!isEditable}
+                  className="min-h-[320px]"
+                  required={submission.status !== "DRAFT"}
+                />
+              </div>
+              <div className="grid gap-5 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                    {uiCopy.fields.conclusionLabel}
+                  </label>
+                  <Textarea
+                    name="conclusion"
+                    defaultValue={submission.conclusion ?? ""}
+                    disabled={!isEditable}
+                    className="min-h-[180px]"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                    {uiCopy.fields.referencesLabel}
+                  </label>
+                  <Textarea
+                    name="references"
+                    defaultValue={submission.references ?? ""}
+                    disabled={!isEditable}
+                    className="min-h-[180px]"
+                  />
+                </div>
               </div>
               <div className="grid gap-5 md:grid-cols-2">
                 <div className="space-y-2">
@@ -158,40 +223,6 @@ export default async function EditSubmissionPage({
                     ))}
                   </select>
                 </div>
-                <div className="space-y-2">
-                  <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                    {copy.submission.fileNameLabel}
-                  </label>
-                  <Input
-                    name="manuscriptFileName"
-                    defaultValue={submission.manuscriptFileName ?? ""}
-                    disabled={!isEditable}
-                  />
-                </div>
-              </div>
-              <div className="grid gap-5 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                    {copy.submission.mimeTypeLabel}
-                  </label>
-                  <Input
-                    name="manuscriptMimeType"
-                    defaultValue={submission.manuscriptMimeType ?? ""}
-                    disabled={!isEditable}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                    {copy.submission.fileSizeLabel}
-                  </label>
-                  <Input
-                    name="manuscriptSizeBytes"
-                    type="number"
-                    min={0}
-                    defaultValue={submission.manuscriptSizeBytes ?? ""}
-                    disabled={!isEditable}
-                  />
-                </div>
               </div>
               <div className="flex flex-wrap gap-3 pt-2">
                 <FormSubmitButton
@@ -206,6 +237,11 @@ export default async function EditSubmissionPage({
                     {copy.submission.backToDashboardLabel}
                   </LocaleLink>
                 </Button>
+                <Button asChild variant="ghost" size="lg">
+                  <LocaleLink locale={locale} href="/templates">
+                    {locale === "zh" ? "查看模板" : "View templates"}
+                  </LocaleLink>
+                </Button>
               </div>
             </form>
           </CardContent>
@@ -214,18 +250,45 @@ export default async function EditSubmissionPage({
         <div className="space-y-6">
           <Card>
             <CardHeader className="space-y-4">
-              <CardTitle>{copy.submission.versionTitle}</CardTitle>
+              <CardTitle>{uiCopy.uploads.sectionTitle}</CardTitle>
               <p className="font-serif text-lg leading-relaxed text-muted-foreground">
-                {copy.submission.versionBody}
+                {uiCopy.uploads.sectionBody}
               </p>
             </CardHeader>
             <CardContent className="space-y-3">
-              <p className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                {copy.submission.latestVersionLabel}
+              <SubmissionFilePanel
+                locale={locale}
+                publicId={publicId}
+                editable={isEditable}
+                assets={[
+                  {
+                    kind: "manuscript",
+                    fileName: submission.manuscriptFileName,
+                    mimeType: submission.manuscriptMimeType,
+                    sizeBytes: submission.manuscriptSizeBytes,
+                    href: `/api/submissions/${publicId}/assets/manuscript`,
+                  },
+                  {
+                    kind: "source",
+                    fileName: submission.sourceArchiveFileName,
+                    mimeType: submission.sourceArchiveMimeType,
+                    sizeBytes: submission.sourceArchiveSizeBytes,
+                    href: `/api/submissions/${publicId}/assets/source`,
+                  },
+                ]}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="space-y-4">
+              <CardTitle>{uiCopy.versions.sectionTitle}</CardTitle>
+              <p className="font-serif text-lg leading-relaxed text-muted-foreground">
+                {uiCopy.versions.sectionBody}
               </p>
-              <p className="font-display text-4xl">
-                {submission.versions[0]?.versionNumber ?? 1}
-              </p>
+            </CardHeader>
+            <CardContent>
+              <SubmissionVersionList locale={locale} versions={submission.versions} />
             </CardContent>
           </Card>
 

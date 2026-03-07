@@ -127,7 +127,7 @@ const copy: Localized<PlatformCopy> = {
       signInLabel: "Sign in",
       signUpLabel: "Create account",
       authNote:
-        "Credentials-based access is enabled for Phase 1. Editorial review and file storage will expand in later phases.",
+        "Use your account to draft structured submissions, upload manuscript files and follow editorial decisions in a private workspace.",
       memberTitle: "Submission workspace",
       memberBody:
         "Create a new draft, continue an existing manuscript, or move into the editorial queue if you are part of the journal staff.",
@@ -176,7 +176,7 @@ const copy: Localized<PlatformCopy> = {
       viewAllLabel: "View all submissions",
       newDraftTitle: "Start a new draft",
       newDraftBody:
-        "A draft opens a private workspace for your title, abstract, cover letter and manuscript metadata.",
+        "A draft opens a private workspace for your title, abstract, keywords, structured manuscript sections and manuscript files.",
       draftCountLabel: "Drafts",
       submittedCountLabel: "Submitted",
       revisionCountLabel: "Revisions requested",
@@ -201,7 +201,7 @@ const copy: Localized<PlatformCopy> = {
       detailTitle: "Submission detail",
       editTitle: "Edit manuscript",
       editIntro:
-        "Update your manuscript metadata and save a new snapshot. Version history is recorded even though it is not yet exposed as a full interface.",
+        "Develop the manuscript inside the journal template, upload supporting files and save durable version snapshots as the draft evolves.",
       newTitle: "Create draft",
       newIntro:
         "Open a blank draft now. You will be redirected to the manuscript editor immediately after creation.",
@@ -213,7 +213,7 @@ const copy: Localized<PlatformCopy> = {
       mimeTypeLabel: "MIME type",
       fileSizeLabel: "File size (bytes)",
       metadataNote:
-        "Storage remains intentionally neutral in Phase 1. Record the manuscript metadata now; file storage will be connected later.",
+        "The submission workspace supports structured drafting together with storage-agnostic file handling for manuscript delivery.",
       saveDraftLabel: "Save draft",
       submitManuscriptLabel: "Submit manuscript",
       createDraftLabel: "Create draft",
@@ -223,7 +223,7 @@ const copy: Localized<PlatformCopy> = {
       statusHistoryTitle: "Status history",
       versionTitle: "Version history",
       versionBody:
-        "Each save creates an internal version snapshot. Phase 1 records it now so a fuller history UI can arrive later without schema changes.",
+        "Each save, submission and revision resubmission creates a durable version snapshot for authors and editors.",
       statusLabel: "Status",
       updatedLabel: "Last updated",
       submittedLabel: "Submitted",
@@ -235,7 +235,7 @@ const copy: Localized<PlatformCopy> = {
       statusActionHint:
         "Editors and administrators can change status, but manuscript fields remain read-only in the editorial interface.",
       editorReadonlyNote:
-        "The editorial desk is intentionally read-only for author content in Phase 1.",
+        "The editorial desk can review structure, files, versions and internal notes, but it does not alter author manuscript content directly.",
       draftGateTitle: "Editing permissions",
       draftGateBody: "Drafts remain editable until the manuscript is submitted.",
       reviseGateBody:
@@ -264,7 +264,7 @@ const copy: Localized<PlatformCopy> = {
       signInLabel: "登录",
       signUpLabel: "注册账户",
       authNote:
-        "Phase 1 先启用邮箱与密码登录。编辑流程与文件存储会在后续阶段继续扩展。",
+        "登录后可在私有工作区中撰写结构化稿件、上传文件，并跟踪编辑决定。",
       memberTitle: "投稿工作区",
       memberBody:
         "你可以新建草稿、继续编辑已有稿件；如果你属于编辑团队，也可以直接进入编辑台。",
@@ -313,7 +313,7 @@ const copy: Localized<PlatformCopy> = {
       viewAllLabel: "查看全部稿件",
       newDraftTitle: "新建草稿",
       newDraftBody:
-        "草稿会为你的标题、摘要、附信与稿件元数据打开一个私有工作区。",
+        "草稿会为标题、摘要、关键词、结构化正文与稿件文件打开一个私有工作区。",
       draftCountLabel: "草稿",
       submittedCountLabel: "已提交",
       revisionCountLabel: "需修改",
@@ -338,7 +338,7 @@ const copy: Localized<PlatformCopy> = {
       detailTitle: "稿件详情",
       editTitle: "编辑稿件",
       editIntro:
-        "更新稿件元数据并保存新快照。版本历史已经在数据库中记录，只是当前界面还未完整展开。",
+        "在期刊模板内继续写作、上传文件，并随着草稿推进保存可追溯的版本快照。",
       newTitle: "新建草稿",
       newIntro:
         "现在即可创建空白草稿。创建成功后会立刻跳转到稿件编辑页。",
@@ -350,7 +350,7 @@ const copy: Localized<PlatformCopy> = {
       mimeTypeLabel: "MIME 类型",
       fileSizeLabel: "文件大小（字节）",
       metadataNote:
-        "Phase 1 暂不接入实际文件存储。当前先记录稿件元数据，后续再接入具体存储层。",
+        "投稿工作区支持结构化写作，也支持与具体存储服务解耦的稿件文件处理。",
       saveDraftLabel: "保存草稿",
       submitManuscriptLabel: "正式提交",
       createDraftLabel: "新建草稿",
@@ -360,7 +360,7 @@ const copy: Localized<PlatformCopy> = {
       statusHistoryTitle: "状态记录",
       versionTitle: "版本记录",
       versionBody:
-        "每次保存都会生成内部版本快照。Phase 1 先把数据结构落下，后续可以直接扩展为完整版本历史界面。",
+        "每次保存、正式提交和返修再提交都会生成可追溯的版本快照，供作者与编辑查看。",
       statusLabel: "状态",
       updatedLabel: "最后更新",
       submittedLabel: "提交时间",
@@ -371,7 +371,7 @@ const copy: Localized<PlatformCopy> = {
       updateStatusLabel: "更新状态",
       statusActionHint:
         "编辑和管理员可以修改状态，但在编辑台中不能修改作者稿件内容。",
-      editorReadonlyNote: "Phase 1 中，编辑台对作者内容保持只读。",
+      editorReadonlyNote: "编辑台可以查看结构、文件、版本和内部备注，但不会直接修改作者稿件内容。",
       draftGateTitle: "编辑权限",
       draftGateBody: "草稿在正式提交前可持续编辑。",
       reviseGateBody: "当编辑要求修改后，作者可以重新编辑，直到再次提交为止。",

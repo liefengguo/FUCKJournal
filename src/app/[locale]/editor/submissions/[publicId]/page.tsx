@@ -2,25 +2,32 @@ import { unstable_noStore as noStore } from "next/cache";
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 
-import { updateSubmissionStatusAction } from "@/app/actions/submissions";
+import {
+  addInternalNoteAction,
+  updateSubmissionStatusAction,
+} from "@/app/actions/submissions";
 import { requireEditorUser } from "@/lib/auth-guards";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { FlashMessage } from "@/components/dashboard/flash-message";
 import { LocaleLink } from "@/components/locale-link";
+import { SubmissionFilePanel } from "@/components/submissions/submission-file-panel";
 import { SubmissionStatusBadge } from "@/components/submissions/submission-status-badge";
+import { SubmissionStructuredContent } from "@/components/submissions/submission-structured-content";
 import { SubmissionTimeline } from "@/components/submissions/submission-timeline";
+import { SubmissionVersionList } from "@/components/submissions/submission-version-list";
 import { Button } from "@/components/ui/button";
 import { FormSubmitButton } from "@/components/ui/form-submit-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import type { Locale } from "@/i18n/routing";
-import {
-  getSubmissionError,
-  getSubmissionNotice,
-} from "@/lib/feedback";
+import { getSubmissionError, getSubmissionNotice } from "@/lib/feedback";
 import { getPlatformCopy } from "@/lib/platform-copy";
-import { getEditorStatusTransitions } from "@/lib/submission-status";
+import {
+  getEditorStatusTransitions,
+  getSubmissionStatusLabel,
+} from "@/lib/submission-status";
+import { getSubmissionUiCopy } from "@/lib/submission-ui-copy";
 import { getEditorialSubmissionDetail } from "@/lib/submissions";
 import { formatDate } from "@/lib/site";
 
@@ -51,9 +58,11 @@ export default async function EditorialSubmissionDetailPage({
   }
 
   const copy = getPlatformCopy(locale);
+  const uiCopy = getSubmissionUiCopy(locale);
   const notice = getSubmissionNotice(locale, searchParams?.notice);
   const errorMessage = getSubmissionError(locale, searchParams?.error);
   const transitions = getEditorStatusTransitions(submission.status);
+  const latestVersion = submission.versions[0]?.versionNumber ?? 1;
 
   return (
     <DashboardShell
@@ -85,7 +94,7 @@ export default async function EditorialSubmissionDetailPage({
       {notice ? <FlashMessage message={notice} /> : null}
       {errorMessage ? <FlashMessage message={errorMessage} tone="error" /> : null}
 
-      <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+      <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <Card>
           <CardHeader className="space-y-4">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -119,9 +128,20 @@ export default async function EditorialSubmissionDetailPage({
                 </p>
                 <p className="mt-2 font-serif text-lg">{submission.author.email}</p>
               </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <p className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                  {copy.submission.languageLabel}
+                </p>
+                <p className="mt-2 font-serif text-lg">
+                  {submission.manuscriptLanguage || (locale === "zh" ? "未填写" : "Not specified")}
+                </p>
+              </div>
+              <div>
+                <p className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                  {copy.submission.latestVersionLabel}
+                </p>
+                <p className="mt-2 font-serif text-lg">v{latestVersion}</p>
+              </div>
               <div>
                 <p className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
                   {copy.submission.updatedLabel}
@@ -144,23 +164,16 @@ export default async function EditorialSubmissionDetailPage({
               </div>
             </div>
 
-            <div>
-              <p className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                {copy.submission.abstractLabel}
-              </p>
-              <p className="mt-3 whitespace-pre-wrap font-serif text-lg leading-relaxed text-muted-foreground">
-                {submission.abstract || (locale === "zh" ? "暂无摘要。" : "No abstract provided.")}
-              </p>
-            </div>
-
-            <div>
-              <p className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                {copy.submission.coverLetterLabel}
-              </p>
-              <p className="mt-3 whitespace-pre-wrap font-serif text-lg leading-relaxed text-muted-foreground">
-                {submission.coverLetter || (locale === "zh" ? "暂无附信。" : "No cover letter provided.")}
-              </p>
-            </div>
+            <SubmissionStructuredContent
+              locale={locale}
+              abstract={submission.abstract}
+              keywords={submission.keywords}
+              coverLetter={submission.coverLetter}
+              introduction={submission.introduction}
+              mainContent={submission.mainContent}
+              conclusion={submission.conclusion}
+              references={submission.references}
+            />
           </CardContent>
         </Card>
 
@@ -189,7 +202,7 @@ export default async function EditorialSubmissionDetailPage({
                     >
                       {transitions.map((status) => (
                         <option key={status} value={status}>
-                          {status}
+                          {getSubmissionStatusLabel(status, locale)}
                         </option>
                       ))}
                     </select>
@@ -214,6 +227,102 @@ export default async function EditorialSubmissionDetailPage({
                     ? "当前状态下没有可执行的下一步编辑操作。"
                     : "No further editorial transitions are available from the current state."}
                 </p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="space-y-4">
+              <CardTitle>{uiCopy.editor.filesTitle}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SubmissionFilePanel
+                locale={locale}
+                publicId={publicId}
+                editable={false}
+                assets={[
+                  {
+                    kind: "manuscript",
+                    fileName: submission.manuscriptFileName,
+                    mimeType: submission.manuscriptMimeType,
+                    sizeBytes: submission.manuscriptSizeBytes,
+                    href: `/api/submissions/${publicId}/assets/manuscript`,
+                  },
+                  {
+                    kind: "source",
+                    fileName: submission.sourceArchiveFileName,
+                    mimeType: submission.sourceArchiveMimeType,
+                    sizeBytes: submission.sourceArchiveSizeBytes,
+                    href: `/api/submissions/${publicId}/assets/source`,
+                  },
+                ]}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="space-y-4">
+              <CardTitle>{uiCopy.editor.versionsTitle}</CardTitle>
+              <p className="font-serif text-lg leading-relaxed text-muted-foreground">
+                {uiCopy.versions.sectionBody}
+              </p>
+            </CardHeader>
+            <CardContent>
+              <SubmissionVersionList locale={locale} versions={submission.versions} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="space-y-4">
+              <CardTitle>{uiCopy.editor.notesTitle}</CardTitle>
+              <p className="font-serif text-lg leading-relaxed text-muted-foreground">
+                {uiCopy.editor.notesBody}
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <form action={addInternalNoteAction} className="space-y-4">
+                <input type="hidden" name="locale" value={locale} />
+                <input type="hidden" name="publicId" value={publicId} />
+                <Textarea
+                  name="body"
+                  className="min-h-[160px]"
+                  placeholder={uiCopy.editor.notePlaceholder}
+                />
+                <FormSubmitButton
+                  type="submit"
+                  size="lg"
+                  className="w-full"
+                  idleLabel={uiCopy.editor.addNoteLabel}
+                  pendingLabel={uiCopy.editor.addingNoteLabel}
+                />
+              </form>
+
+              {submission.internalNotes.length ? (
+                <div className="space-y-4">
+                  {submission.internalNotes.map((note) => (
+                    <div key={note.id} className="rounded-[24px] border border-border/60 px-5 py-4">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <p className="font-serif text-lg">
+                            {note.author.name || note.author.email}
+                          </p>
+                          <p className="mt-1 font-sans text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                            {formatDate(note.createdAt.toISOString(), locale)}
+                          </p>
+                        </div>
+                      </div>
+                      <p className="mt-4 whitespace-pre-wrap font-serif text-lg leading-relaxed text-muted-foreground">
+                        {note.body}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-[24px] border border-border/60 px-5 py-6">
+                  <p className="font-serif text-lg leading-relaxed text-muted-foreground">
+                    {uiCopy.editor.notesEmpty}
+                  </p>
+                </div>
               )}
             </CardContent>
           </Card>

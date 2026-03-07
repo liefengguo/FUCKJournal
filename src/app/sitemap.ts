@@ -11,6 +11,7 @@ const indexedRoutes = [
   "/articles",
   "/manifesto",
   "/submit",
+  "/templates",
   "/about",
   "/contact",
 ];
