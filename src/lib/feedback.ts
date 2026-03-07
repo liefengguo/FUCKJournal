@@ -21,7 +21,10 @@ export type SubmissionFeedbackCode =
   | "saved"
   | "submitted"
   | "updated"
+  | "asset-uploaded"
+  | "note-added"
   | "submission-not-found"
+  | "asset-not-found"
   | "public-id-generation-failed"
   | "submitted-locked"
   | "under-review-locked"
@@ -36,7 +39,22 @@ export type SubmissionFeedbackCode =
   | "draft-save-failed"
   | "draft-submit-failed"
   | "status-update-failed"
-  | "invalid-status";
+  | "invalid-status"
+  | "invalid-manuscript-file"
+  | "invalid-source-file"
+  | "upload-too-large"
+  | "storage-misconfigured"
+  | "upload-failed"
+  | "download-failed"
+  | "invalid-editor-note"
+  | "internal-note-failed";
+
+type VersionLabelCode =
+  | "Draft Created"
+  | "Draft Save"
+  | "Revision Draft Save"
+  | "Submission"
+  | "Revision Resubmission";
 
 const authFeedback: Localized<Record<AuthFeedbackCode, string>> = {
   en: {
@@ -68,10 +86,23 @@ const authFeedback: Localized<Record<AuthFeedbackCode, string>> = {
 };
 
 const submissionFeedback: Localized<{
-  notices: Record<"created" | "saved" | "submitted" | "updated", string>;
-  errors: Record<Exclude<SubmissionFeedbackCode, "created" | "saved" | "submitted" | "updated">, string>;
+  notices: Record<
+    "created" | "saved" | "submitted" | "updated" | "asset-uploaded" | "note-added",
+    string
+  >;
+  errors: Record<
+    Exclude<
+      SubmissionFeedbackCode,
+      "created" | "saved" | "submitted" | "updated" | "asset-uploaded" | "note-added"
+    >,
+    string
+  >;
   timelineEmpty: string;
   timelineEmptyDraft: string;
+  versionLabels: Record<
+    VersionLabelCode,
+    string
+  >;
 }> = {
   en: {
     notices: {
@@ -79,9 +110,12 @@ const submissionFeedback: Localized<{
       saved: "Draft saved.",
       submitted: "Manuscript submitted to the editorial queue.",
       updated: "Submission status updated.",
+      "asset-uploaded": "File uploaded successfully.",
+      "note-added": "Internal editor note added.",
     },
     errors: {
       "submission-not-found": "The requested submission could not be found.",
+      "asset-not-found": "The requested file could not be found.",
       "public-id-generation-failed":
         "A stable submission identifier could not be generated.",
       "submitted-locked":
@@ -96,7 +130,7 @@ const submissionFeedback: Localized<{
       "invalid-draft-input":
         "Please review the manuscript fields and provide valid draft data.",
       "missing-required-submission-fields":
-        "Add a title and a substantive abstract before submitting the manuscript.",
+        "Complete the title, abstract, keywords and main content before submitting the manuscript.",
       "status-update-forbidden":
         "Only editors and administrators can update submission status.",
       "status-transition-not-allowed":
@@ -106,11 +140,28 @@ const submissionFeedback: Localized<{
       "draft-submit-failed": "Unable to submit the manuscript.",
       "status-update-failed": "Unable to update submission status.",
       "invalid-status": "Select a valid next status.",
+      "invalid-manuscript-file": "Upload a PDF file for the manuscript.",
+      "invalid-source-file": "Upload a ZIP archive for the source package.",
+      "upload-too-large": "The selected file exceeds the allowed size limit.",
+      "storage-misconfigured":
+        "File storage is not configured for this environment yet.",
+      "upload-failed": "Unable to upload the file right now.",
+      "download-failed": "Unable to download the requested file right now.",
+      "invalid-editor-note":
+        "Internal notes should be between 5 and 5000 characters.",
+      "internal-note-failed": "Unable to save the internal editor note.",
     },
     timelineEmpty:
       "No status events have been recorded yet. The submission remains in its current state.",
     timelineEmptyDraft:
       "No status events have been recorded yet. The manuscript is still in draft.",
+    versionLabels: {
+      "Draft Created": "Draft Created",
+      "Draft Save": "Draft Save",
+      "Revision Draft Save": "Revision Draft Save",
+      Submission: "Submission",
+      "Revision Resubmission": "Revision Resubmission",
+    },
   },
   zh: {
     notices: {
@@ -118,9 +169,12 @@ const submissionFeedback: Localized<{
       saved: "草稿已保存。",
       submitted: "稿件已提交到编辑队列。",
       updated: "稿件状态已更新。",
+      "asset-uploaded": "文件上传成功。",
+      "note-added": "内部编辑备注已添加。",
     },
     errors: {
       "submission-not-found": "未找到对应稿件。",
+      "asset-not-found": "未找到对应文件。",
       "public-id-generation-failed": "无法生成稳定的稿件编号。",
       "submitted-locked": "稿件提交后，在编辑审阅期间作者无法继续修改。",
       "under-review-locked": "稿件审阅中，只有在编辑要求修改或给出决定后才会重新开放。",
@@ -128,7 +182,7 @@ const submissionFeedback: Localized<{
       "rejected-locked": "被拒稿件会以只读形式保留。",
       "not-editable": "当前稿件不可编辑。",
       "invalid-draft-input": "请检查稿件字段并填写有效内容。",
-      "missing-required-submission-fields": "正式提交前请至少完善标题和较完整的摘要。",
+      "missing-required-submission-fields": "正式提交前请完善标题、摘要、关键词和正文。",
       "status-update-forbidden": "只有编辑和管理员可以修改稿件状态。",
       "status-transition-not-allowed": "当前状态不允许执行这个变更。",
       "draft-create-failed": "暂时无法创建草稿。",
@@ -136,9 +190,24 @@ const submissionFeedback: Localized<{
       "draft-submit-failed": "暂时无法提交稿件。",
       "status-update-failed": "暂时无法更新稿件状态。",
       "invalid-status": "请选择有效的下一状态。",
+      "invalid-manuscript-file": "稿件文件请上传 PDF。",
+      "invalid-source-file": "源文件包请上传 ZIP 压缩包。",
+      "upload-too-large": "所选文件超过了允许的大小限制。",
+      "storage-misconfigured": "当前环境尚未完成文件存储配置。",
+      "upload-failed": "暂时无法上传文件。",
+      "download-failed": "暂时无法下载该文件。",
+      "invalid-editor-note": "内部备注长度应在 5 到 5000 个字符之间。",
+      "internal-note-failed": "暂时无法保存内部编辑备注。",
     },
     timelineEmpty: "当前还没有状态事件记录，稿件会保持在现有状态。",
     timelineEmptyDraft: "当前还没有状态事件记录，稿件仍处于草稿阶段。",
+    versionLabels: {
+      "Draft Created": "创建草稿",
+      "Draft Save": "保存草稿",
+      "Revision Draft Save": "修改稿保存",
+      Submission: "正式提交",
+      "Revision Resubmission": "修改后再提交",
+    },
   },
 };
 
@@ -196,6 +265,12 @@ export function getSubmissionTimelineEmptyMessage(
   return isDraft
     ? submissionFeedback[locale].timelineEmptyDraft
     : submissionFeedback[locale].timelineEmpty;
+}
+
+export function getVersionLabel(locale: Locale, label: string) {
+  return (
+    submissionFeedback[locale].versionLabels[label as VersionLabelCode] ?? label
+  );
 }
 
 export function getCredentialValidationMessages(

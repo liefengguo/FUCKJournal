@@ -8,7 +8,11 @@ type Viewer = {
 };
 
 export function canUserViewSubmission(viewer: Viewer, submission: Submission) {
-  return isStaffRole(viewer.role) || submission.authorId === viewer.id;
+  if (isStaffRole(viewer.role)) {
+    return submission.status !== "DRAFT";
+  }
+
+  return submission.authorId === viewer.id;
 }
 
 export function canUserEditSubmission(viewer: Viewer, submission: Submission) {

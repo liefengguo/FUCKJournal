@@ -33,48 +33,75 @@ model User {
   submissions      Submission[]
   versionSnapshots SubmissionVersion[]
   statusEvents     SubmissionStatusEvent[]
+  internalNotes    InternalEditorNote[]
 }
 
 model Submission {
-  id                   String                  @id @default(cuid())
-  publicId             String                  @unique
-  authorId             String
-  title                String                  @default("")
-  abstract             String?                 @db.Text
-  coverLetter          String?                 @db.Text
-  manuscriptLanguage   String?
-  manuscriptFileName   String?
-  manuscriptStorageKey String?
-  manuscriptMimeType   String?
-  manuscriptSizeBytes  Int?
-  status               SubmissionStatus        @default(DRAFT)
-  submittedAt          DateTime?
-  createdAt            DateTime                @default(now())
-  updatedAt            DateTime                @updatedAt
-  author               User                    @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  versions             SubmissionVersion[]
-  statusEvents         SubmissionStatusEvent[]
+  id                           String                  @id @default(cuid())
+  publicId                     String                  @unique
+  authorId                     String
+  title                        String                  @default("")
+  abstract                     String?                 @db.Text
+  keywords                     String[]                @default([])
+  coverLetter                  String?                 @db.Text
+  introduction                 String?                 @db.Text
+  mainContent                  String?                 @db.Text
+  conclusion                   String?                 @db.Text
+  references                   String?                 @db.Text
+  manuscriptLanguage           String?
+  manuscriptFileName           String?
+  manuscriptStorageKey         String?
+  manuscriptStorageProvider    String?
+  manuscriptMimeType           String?
+  manuscriptSizeBytes          Int?
+  sourceArchiveFileName        String?
+  sourceArchiveStorageKey      String?
+  sourceArchiveStorageProvider String?
+  sourceArchiveMimeType        String?
+  sourceArchiveSizeBytes       Int?
+  status                       SubmissionStatus        @default(DRAFT)
+  submittedAt                  DateTime?
+  createdAt                    DateTime                @default(now())
+  updatedAt                    DateTime                @updatedAt
+  author                       User                    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  versions                     SubmissionVersion[]
+  statusEvents                 SubmissionStatusEvent[]
+  internalNotes                InternalEditorNote[]
 
   @@index([authorId, status])
   @@index([status, updatedAt])
+  @@index([manuscriptLanguage])
 }
 
 model SubmissionVersion {
-  id                   String     @id @default(cuid())
-  submissionId         String
-  versionNumber        Int
-  createdById          String
-  title                String
-  abstract             String?    @db.Text
-  coverLetter          String?    @db.Text
-  manuscriptLanguage   String?
-  manuscriptFileName   String?
-  manuscriptStorageKey String?
-  manuscriptMimeType   String?
-  manuscriptSizeBytes  Int?
-  createdAt            DateTime   @default(now())
-  submission           Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-  createdBy            User       @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  id                           String           @id @default(cuid())
+  submissionId                 String
+  versionNumber                Int
+  createdById                  String
+  label                        String
+  statusContext                SubmissionStatus
+  title                        String
+  abstract                     String?          @db.Text
+  keywords                     String[]         @default([])
+  coverLetter                  String?          @db.Text
+  introduction                 String?          @db.Text
+  mainContent                  String?          @db.Text
+  conclusion                   String?          @db.Text
+  references                   String?          @db.Text
+  manuscriptLanguage           String?
+  manuscriptFileName           String?
+  manuscriptStorageKey         String?
+  manuscriptStorageProvider    String?
+  manuscriptMimeType           String?
+  manuscriptSizeBytes          Int?
+  sourceArchiveFileName        String?
+  sourceArchiveStorageKey      String?
+  sourceArchiveStorageProvider String?
+  sourceArchiveMimeType        String?
+  sourceArchiveSizeBytes       Int?
+  createdAt                    DateTime         @default(now())
+  submission                   Submission       @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  createdBy                    User             @relation(fields: [createdById], references: [id], onDelete: Cascade)
 
   @@unique([submissionId, versionNumber])
   @@index([submissionId, createdAt])
@@ -90,6 +117,19 @@ model SubmissionStatusEvent {
   createdAt    DateTime          @default(now())
   submission   Submission        @relation(fields: [submissionId], references: [id], onDelete: Cascade)
   actor        User              @relation(fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId, createdAt])
+}
+
+model InternalEditorNote {
+  id           String     @id @default(cuid())
+  submissionId String
+  authorId     String
+  body         String     @db.Text
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  author       User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([submissionId, createdAt])
 }

@@ -10,6 +10,7 @@ import {
   requireEditorUser,
 } from "@/lib/auth-guards";
 import {
+  addInternalEditorNote,
   createDraftSubmission,
   saveAuthorSubmissionDraft,
   SubmissionError,
@@ -37,6 +38,13 @@ function getFormString(formData: FormData, key: string) {
 function getOptionalString(formData: FormData, key: string) {
   const value = getFormString(formData, key).trim();
   return value || null;
+}
+
+function getKeywords(formData: FormData) {
+  return getFormString(formData, "keywords")
+    .split(",")
+    .map((keyword) => keyword.trim())
+    .filter(Boolean);
 }
 
 export async function createDraftAction(formData: FormData) {
@@ -107,11 +115,30 @@ export async function saveDraftAction(formData: FormData) {
     await saveAuthorSubmissionDraft(user, publicId, {
       title: getFormString(formData, "title"),
       abstract: getOptionalString(formData, "abstract"),
+      keywords: getKeywords(formData),
       coverLetter: getOptionalString(formData, "coverLetter"),
+      introduction: getOptionalString(formData, "introduction"),
+      mainContent: getOptionalString(formData, "mainContent"),
+      conclusion: getOptionalString(formData, "conclusion"),
+      references: getOptionalString(formData, "references"),
       manuscriptLanguage,
       manuscriptFileName: getOptionalString(formData, "manuscriptFileName"),
+      manuscriptStorageProvider: getOptionalString(formData, "manuscriptStorageProvider"),
       manuscriptMimeType: getOptionalString(formData, "manuscriptMimeType"),
       manuscriptSizeBytes,
+      sourceArchiveFileName: getOptionalString(formData, "sourceArchiveFileName"),
+      sourceArchiveStorageProvider: getOptionalString(
+        formData,
+        "sourceArchiveStorageProvider",
+      ),
+      sourceArchiveMimeType: getOptionalString(formData, "sourceArchiveMimeType"),
+      sourceArchiveSizeBytes:
+        (() => {
+          const sourceSizeValue = getOptionalString(formData, "sourceArchiveSizeBytes");
+          return sourceSizeValue && /^\d+$/.test(sourceSizeValue)
+            ? Number(sourceSizeValue)
+            : null;
+        })(),
     });
 
     revalidatePath(`/${locale}/dashboard`);
@@ -129,6 +156,30 @@ export async function saveDraftAction(formData: FormData) {
       error instanceof SubmissionError ? error.code : "draft-save-failed";
     redirect(
       buildNoticeUrl(`/${locale}/dashboard/submissions/${publicId}/edit`, "error", message),
+    );
+  }
+}
+
+export async function addInternalNoteAction(formData: FormData) {
+  const locale = getLocale(formData.get("locale"));
+  const publicId = getFormString(formData, "publicId");
+  const user = await requireEditorUser(
+    locale,
+    `/${locale}/editor/submissions/${publicId}`,
+  );
+
+  try {
+    await addInternalEditorNote(user, publicId, getFormString(formData, "body"));
+
+    revalidatePath(`/${locale}/editor/submissions/${publicId}`);
+    redirect(
+      buildNoticeUrl(`/${locale}/editor/submissions/${publicId}`, "notice", "note-added"),
+    );
+  } catch (error) {
+    const message =
+      error instanceof SubmissionError ? error.code : "internal-note-failed";
+    redirect(
+      buildNoticeUrl(`/${locale}/editor/submissions/${publicId}`, "error", message),
     );
   }
 }
