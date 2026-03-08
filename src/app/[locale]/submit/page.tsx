@@ -4,6 +4,7 @@ import { unstable_noStore as noStore } from "next/cache";
 import { setRequestLocale } from "next-intl/server";
 
 import { SubmissionForm } from "@/components/submission-form";
+import { TemplateDownloadGrid } from "@/components/templates/template-download-grid";
 import { LocaleLink } from "@/components/locale-link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import type { Locale } from "@/i18n/routing";
 import { getCopy } from "@/lib/copy";
 import { createPageMetadata } from "@/lib/metadata";
 import { getSubmissionUiCopy } from "@/lib/submission-ui-copy";
+import { getTemplatePageContent } from "@/lib/template-packages";
 
 type SubmitPageProps = {
   params: {
@@ -41,6 +43,7 @@ export default function SubmitPage({ params }: SubmitPageProps) {
   setRequestLocale(locale);
   const copy = getCopy(locale);
   const uiCopy = getSubmissionUiCopy(locale);
+  const templateCopy = getTemplatePageContent(locale);
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-12">
@@ -94,9 +97,14 @@ export default function SubmitPage({ params }: SubmitPageProps) {
               <p className="font-serif text-lg leading-relaxed text-muted-foreground">
                 {uiCopy.submitTemplatesCtaBody}
               </p>
+              <TemplateDownloadGrid
+                locale={locale}
+                compact
+                downloadLabel={templateCopy.downloadLabel}
+              />
               <Button asChild size="sm">
                 <LocaleLink locale={locale} href="/templates">
-                  {uiCopy.submitTemplatesCtaLabel}
+                  {locale === "zh" ? "查看模板详情" : "View full template guide"}
                 </LocaleLink>
               </Button>
             </CardContent>

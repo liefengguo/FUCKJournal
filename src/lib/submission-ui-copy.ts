@@ -159,7 +159,7 @@ const copy: Localized<Phase2Copy> = {
   en: {
     submitTemplatesCtaLabel: "View submission templates",
     submitTemplatesCtaBody:
-      "Review the journal structure, writing checklist and file expectations before you begin the online submission workspace.",
+      "Download the English or Chinese Word / LaTeX packages if you want the manuscript to already read like a formal journal paper before upload.",
     templates: {
       title: "Submission Templates",
       intro:
@@ -379,7 +379,7 @@ const copy: Localized<Phase2Copy> = {
   zh: {
     submitTemplatesCtaLabel: "查看投稿模板",
     submitTemplatesCtaBody:
-      "开始在线投稿工作区之前，先查看期刊结构、写作清单与文件要求。",
+      "如果你希望稿件在上传前就更像正式期刊论文，可以先下载中英文 Word / LaTeX 模板包。",
     templates: {
       title: "投稿模板",
       intro:

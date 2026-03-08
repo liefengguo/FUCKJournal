@@ -161,6 +161,10 @@ export default async function SubmissionDetailPage({
 
             <SubmissionStructuredContent
               locale={locale}
+              title={submission.title}
+              byline={user.name || user.email}
+              manuscriptId={submission.publicId}
+              language={submission.manuscriptLanguage}
               abstract={submission.abstract}
               keywords={submission.keywords}
               coverLetter={submission.coverLetter}

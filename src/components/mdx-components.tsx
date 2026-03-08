@@ -3,19 +3,19 @@ import type { MDXComponents } from "mdx/types";
 export const mdxComponents: MDXComponents = {
   h2: ({ className, ...props }) => (
     <h2
-      className={`mt-16 font-display text-4xl leading-tight tracking-tight text-foreground ${className ?? ""}`}
+      className={`mt-16 border-t border-border/60 pt-6 font-display text-3xl leading-tight tracking-tight text-foreground ${className ?? ""}`}
       {...props}
     />
   ),
   h3: ({ className, ...props }) => (
     <h3
-      className={`mt-12 font-display text-2xl leading-tight tracking-tight text-foreground ${className ?? ""}`}
+      className={`mt-10 font-display text-[1.7rem] leading-tight tracking-tight text-foreground ${className ?? ""}`}
       {...props}
     />
   ),
   p: ({ className, ...props }) => (
     <p
-      className={`font-serif text-xl leading-[1.95] text-foreground/90 ${className ?? ""}`}
+      className={`font-serif text-[1.06rem] leading-8 text-foreground/90 ${className ?? ""}`}
       {...props}
     />
   ),
@@ -26,14 +26,14 @@ export const mdxComponents: MDXComponents = {
     />
   ),
   ul: ({ className, ...props }) => (
-    <ul className={`space-y-3 pl-6 font-serif text-xl leading-[1.85] ${className ?? ""}`} {...props} />
+    <ul className={`space-y-3 pl-6 font-serif text-[1.06rem] leading-8 ${className ?? ""}`} {...props} />
   ),
   ol: ({ className, ...props }) => (
-    <ol className={`space-y-3 pl-6 font-serif text-xl leading-[1.85] ${className ?? ""}`} {...props} />
+    <ol className={`space-y-3 pl-6 font-serif text-[1.06rem] leading-8 ${className ?? ""}`} {...props} />
   ),
   blockquote: ({ className, ...props }) => (
     <blockquote
-      className={`border-l-2 border-journal-red/50 pl-6 font-display text-3xl italic leading-relaxed text-foreground/85 dark:border-journal-gold/50 ${className ?? ""}`}
+      className={`border-l-2 border-journal-red/50 pl-6 font-serif text-[1.12rem] italic leading-8 text-foreground/85 dark:border-journal-gold/50 ${className ?? ""}`}
       {...props}
     />
   ),

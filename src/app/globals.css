@@ -113,15 +113,19 @@
   }
 
   .article-prose {
-    @apply max-w-prose space-y-8;
+    @apply max-w-none space-y-7;
   }
 
   .article-prose > *:first-child {
     @apply mt-0;
   }
 
-  .article-prose > p:first-of-type::first-letter {
-    @apply float-left mr-3 font-display text-7xl leading-[0.9] text-journal-red dark:text-journal-gold;
+  .article-manuscript {
+    @apply mx-auto max-w-[46rem];
+  }
+
+  .article-abstract {
+    @apply rounded-[24px] border border-border/70 bg-background/60 px-6 py-5;
   }
 
   .subheading-anchor {
