@@ -36,6 +36,12 @@ npm run db:seed
 
 ## Local Development
 
+Project root on this machine:
+
+```bash
+~/Work/FUCK
+```
+
 Create a local env file before using the submission platform:
 
 ```bash
@@ -102,6 +108,7 @@ Operational guardrails:
 Suggested local workflow:
 
 ```bash
+cd ~/Work/FUCK
 npm install
 cp .env.example .env.local
 npm run db:generate
