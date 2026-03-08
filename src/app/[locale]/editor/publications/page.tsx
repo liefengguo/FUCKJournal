@@ -10,6 +10,7 @@ import { PublicationStateBadge } from "@/components/submissions/publication-stat
 import { SubmissionStatusBadge } from "@/components/submissions/submission-status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import type { Locale } from "@/i18n/routing";
 import { getSubmissionError, getSubmissionNotice } from "@/lib/feedback";
 import { getPlatformCopy } from "@/lib/platform-copy";
@@ -30,6 +31,8 @@ type EditorPublicationsPageProps = {
   searchParams?: {
     state?: string;
     locale?: string;
+    year?: string;
+    q?: string;
     notice?: string;
     error?: string;
   };
@@ -61,12 +64,19 @@ export default async function EditorPublicationsPage({
     )
       ? searchParams.locale
       : "all";
+  const publicationYear =
+    searchParams?.year && /^\d{4}$/.test(searchParams.year)
+      ? Number(searchParams.year)
+      : "all";
+  const query = searchParams?.q?.trim() ?? "";
 
   const [allSubmissions, submissions] = await Promise.all([
     listPublicationSubmissions(),
     listPublicationSubmissions({
       state,
       locale: publicationLocale,
+      year: publicationYear,
+      query,
     }),
   ]);
 
@@ -74,7 +84,14 @@ export default async function EditorPublicationsPage({
   const uiCopy = getSubmissionUiCopy(locale);
   const notice = getSubmissionNotice(locale, searchParams?.notice);
   const errorMessage = getSubmissionError(locale, searchParams?.error);
-  const hasActiveFilters = state !== "ALL" || publicationLocale !== "all";
+  const hasActiveFilters =
+    state !== "ALL" ||
+    publicationLocale !== "all" ||
+    publicationYear !== "all" ||
+    Boolean(query);
+  const availableYears = Array.from(
+    new Set(allSubmissions.map((submission) => submission.publicationYear).filter(Boolean)),
+  ).sort((left, right) => (right ?? 0) - (left ?? 0));
   const counts = allSubmissions.reduce(
     (accumulator, submission) => {
       const pipelineState = getPublicationPipelineState(submission);
@@ -111,9 +128,18 @@ export default async function EditorPublicationsPage({
           label: copy.editor.publicationsTitle,
           active: true,
         },
+        {
+          href: "/editor/issues",
+          label: copy.editor.issuesTitle,
+        },
       ]}
       action={
         <>
+          <Button asChild variant="outline" size="sm">
+            <LocaleLink locale={locale} href="/editor/issues">
+              {copy.editor.issuesTitle}
+            </LocaleLink>
+          </Button>
           <Button asChild variant="outline" size="sm">
             <LocaleLink locale={locale} href="/editor/submissions">
               {copy.editor.queueTitle}
@@ -162,7 +188,17 @@ export default async function EditorPublicationsPage({
           <CardTitle>{uiCopy.publication.queueTitle}</CardTitle>
         </CardHeader>
         <CardContent>
-          <form className="grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
+          <form className="grid gap-4 md:grid-cols-[1.25fr_0.9fr_0.9fr_0.8fr_auto] md:items-end">
+            <div className="space-y-2">
+              <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                {locale === "zh" ? "搜索标题、slug、编号或作者" : "Search title, slug, ID or author"}
+              </label>
+              <Input
+                name="q"
+                defaultValue={query}
+                placeholder={locale === "zh" ? "例如：issue 或 FJ-" : "For example: issue or FJ-"}
+              />
+            </div>
             <div className="space-y-2">
               <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
                 {uiCopy.publication.stateFilterLabel}
@@ -207,6 +243,23 @@ export default async function EditorPublicationsPage({
                 ))}
               </select>
             </div>
+            <div className="space-y-2">
+              <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                {locale === "zh" ? "年份" : "Year"}
+              </label>
+              <select
+                name="year"
+                defaultValue={publicationYear === "all" ? "all" : String(publicationYear)}
+                className="h-11 w-full rounded-[24px] border border-border bg-background/70 px-4 font-sans text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="all">{locale === "zh" ? "全部年份" : "All years"}</option>
+                {availableYears.map((year) => (
+                  <option key={year} value={String(year)}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div className="flex gap-3">
               <Button type="submit" size="sm">
                 {locale === "zh" ? "应用筛选" : "Apply filters"}
@@ -226,6 +279,11 @@ export default async function EditorPublicationsPage({
       <Card>
         <CardHeader className="space-y-4">
           <CardTitle>{copy.editor.publicationsTitle}</CardTitle>
+          <p className="font-serif text-lg leading-relaxed text-muted-foreground">
+            {locale === "zh"
+              ? "accepted 稿件会在这里进入出版准备。issue 规划请转到期次规划页。"
+              : "Accepted manuscripts move through publication preparation here. Use issue planning for grouped volume and issue management."}
+          </p>
         </CardHeader>
         <CardContent className="space-y-4">
           {submissions.length ? (
@@ -266,6 +324,15 @@ export default async function EditorPublicationsPage({
                             (locale === "zh" ? "无 slug" : "No slug")}
                         </span>
                         <span>
+                          {submission.publicationYear && submission.publicationVolume && submission.publicationIssue
+                            ? locale === "zh"
+                              ? `${submission.publicationYear} / 第 ${submission.publicationVolume} 卷 / 第 ${submission.publicationIssue} 期`
+                              : `${submission.publicationYear} / Vol. ${submission.publicationVolume} / Issue ${submission.publicationIssue}`
+                            : locale === "zh"
+                              ? "未分配期次"
+                              : "Issue unassigned"}
+                        </span>
+                        <span>
                           {locale === "zh" ? "版本" : "Versions"}: {submission._count.versions}
                         </span>
                         <span>
@@ -292,13 +359,17 @@ export default async function EditorPublicationsPage({
           ) : (
             <div className="rounded-[24px] border border-border/60 px-5 py-6">
               <p className="font-serif text-lg text-muted-foreground">
-                {uiCopy.publication.queueEmpty}
+                {hasActiveFilters
+                  ? locale === "zh"
+                    ? "当前筛选条件下没有匹配稿件。"
+                    : "No publications match the current filters."
+                  : uiCopy.publication.queueEmpty}
               </p>
               <p className="mt-4 font-sans text-xs uppercase tracking-[0.2em] text-muted-foreground">
                 {hasActiveFilters
                   ? locale === "zh"
-                    ? "调整流程状态或语言筛选后重试。"
-                    : "Adjust pipeline state or locale filters to broaden the queue."
+                    ? "调整搜索词、流程状态、语言或年份筛选后重试。"
+                    : "Adjust the query, pipeline state, locale or year filters to broaden the queue."
                   : locale === "zh"
                     ? "稿件在被接收后才会进入这里。"
                     : "Submissions appear here only after they are accepted."}

@@ -47,7 +47,10 @@ export async function requireEditorUser(
   const user = await requireAuthenticatedUser(locale, callbackUrl);
 
   if (!isStaffRole(user.role)) {
-    redirect(`/${locale}/dashboard?notice=editor-only`);
+    const destination = new URLSearchParams({
+      notice: "editor-only",
+    });
+    redirect(`${getRoleHomePath(locale, user.role)}?${destination.toString()}`);
   }
 
   return user;
@@ -60,7 +63,10 @@ export async function requireReviewerUser(
   const user = await requireAuthenticatedUser(locale, callbackUrl);
 
   if (!isReviewerRole(user.role)) {
-    redirect(getRoleHomePath(locale, user.role));
+    const destination = new URLSearchParams({
+      notice: "reviewer-only",
+    });
+    redirect(`${getRoleHomePath(locale, user.role)}?${destination.toString()}`);
   }
 
   return user;

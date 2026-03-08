@@ -8,6 +8,7 @@ import { SignOutButton } from "@/components/auth/sign-out-button";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { FlashMessage } from "@/components/dashboard/flash-message";
 import { LocaleLink } from "@/components/locale-link";
+import { PublicationAuditTrail } from "@/components/submissions/publication-audit-trail";
 import { PublicationStateBadge } from "@/components/submissions/publication-state-badge";
 import { SubmissionFilePanel } from "@/components/submissions/submission-file-panel";
 import { SubmissionStructuredContent } from "@/components/submissions/submission-structured-content";
@@ -97,9 +98,18 @@ export default async function PublicationDetailPage({
           label: copy.editor.publicationsTitle,
           active: true,
         },
+        {
+          href: "/editor/issues",
+          label: copy.editor.issuesTitle,
+        },
       ]}
       action={
         <>
+          <Button asChild variant="outline" size="sm">
+            <LocaleLink locale={locale} href="/editor/issues">
+              {copy.editor.issuesTitle}
+            </LocaleLink>
+          </Button>
           <Button asChild variant="outline" size="sm">
             <LocaleLink locale={locale} href="/editor/publications">
               {copy.editor.publicationsTitle}
@@ -197,7 +207,23 @@ export default async function PublicationDetailPage({
                     ? formatDate(submission.publishedAt.toISOString(), locale)
                     : locale === "zh"
                       ? "尚未发布"
-                      : "Not published"}
+                    : "Not published"}
+                </p>
+              </div>
+              <div>
+                <p className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                  {locale === "zh" ? "期次编排" : "Issue placement"}
+                </p>
+                <p className="mt-2 font-serif text-lg">
+                  {submission.publicationYear &&
+                  submission.publicationVolume &&
+                  submission.publicationIssue
+                    ? locale === "zh"
+                      ? `${submission.publicationYear} / 第 ${submission.publicationVolume} 卷 / 第 ${submission.publicationIssue} 期`
+                      : `${submission.publicationYear} / Vol. ${submission.publicationVolume} / Issue ${submission.publicationIssue}`
+                    : locale === "zh"
+                      ? "尚未分配期次"
+                      : "Not assigned to an issue yet"}
                 </p>
               </div>
             </div>
@@ -441,6 +467,18 @@ export default async function PublicationDetailPage({
                   {uiCopy.publication.reviewWorkspaceLinkLabel}
                 </LocaleLink>
               </Button>
+              {submission.publicationYear &&
+              submission.publicationVolume &&
+              submission.publicationIssue ? (
+                <Button asChild variant="ghost" className="w-full justify-center">
+                  <LocaleLink
+                    locale={locale}
+                    href={`/editor/issues/${submission.publicationYear}/${encodeURIComponent(submission.publicationVolume ?? "")}/${encodeURIComponent(submission.publicationIssue ?? "")}`}
+                  >
+                    {locale === "zh" ? "查看所属期次" : "Open issue group"}
+                  </LocaleLink>
+                </Button>
+              ) : null}
             </CardContent>
           </Card>
 
@@ -479,6 +517,23 @@ export default async function PublicationDetailPage({
             </CardHeader>
             <CardContent>
               <SubmissionVersionList locale={locale} versions={submission.versions} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="space-y-4">
+              <CardTitle>{locale === "zh" ? "出版审计记录" : "Publication audit trail"}</CardTitle>
+              <p className="font-serif text-lg leading-relaxed text-muted-foreground">
+                {locale === "zh"
+                  ? "记录是谁更新了出版元数据、谁将稿件标记为可发布，以及谁写入了发布时间。"
+                  : "Track who updated publication metadata, who marked the manuscript publication-ready, and who recorded the publication timestamp."}
+              </p>
+            </CardHeader>
+            <CardContent>
+              <PublicationAuditTrail
+                locale={locale}
+                items={submission.publicationAuditEvents}
+              />
             </CardContent>
           </Card>
 

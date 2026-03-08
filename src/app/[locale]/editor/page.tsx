@@ -98,12 +98,21 @@ export default async function EditorPage({
           href: "/editor/publications",
           label: copy.editor.publicationsTitle,
         },
+        {
+          href: "/editor/issues",
+          label: copy.editor.issuesTitle,
+        },
       ]}
       action={
         <>
           <Button asChild size="sm">
             <LocaleLink locale={locale} href="/editor/submissions">
               {copy.editor.queueTitle}
+            </LocaleLink>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <LocaleLink locale={locale} href="/editor/issues">
+              {copy.editor.issuesTitle}
             </LocaleLink>
           </Button>
           <Button asChild variant="outline" size="sm">

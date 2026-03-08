@@ -17,6 +17,7 @@ A bilingual academic journal website built with Next.js 14, TypeScript, Tailwind
 - Storage-agnostic manuscript uploads with local and Vercel Blob adapters
 - Reviewer workflow, editorial decisions and publication-ready foundation
 - Editorial publication queue, publication metadata workspace and export drafts
+- Editorial issue planning, publication audit trail and queue search filters
 - RSS, sitemap, robots and OG/Twitter metadata routes
 
 ## Scripts
@@ -80,7 +81,7 @@ Storage notes:
 Notification notes:
 
 - `NOTIFICATION_PROVIDER=mock` logs workflow notifications to the server console.
-- Reviewer assignment, submission status changes, revision requests, acceptance and rejection already emit provider-neutral notification events.
+- Reviewer assignment, reviewer removal, review submission, submission status changes, revision requests, acceptance, rejection and publication workflow updates emit provider-neutral notification events.
 
 Suggested local workflow:
 
@@ -125,6 +126,13 @@ Publication workflow notes:
 - Publication metadata is managed separately from author manuscript editing.
 - Markdown and JSON export endpoints prepare internal publication drafts without modifying `content/articles`.
 - The public site remains MDX-based and accepted submissions are not exposed automatically.
+
+Editorial operations notes:
+
+- Contributor, reviewer, editorial and publication queues now support search and filtering.
+- `/en/editor/issues` and `/zh/editor/issues` group accepted manuscripts by publication year, volume and issue.
+- Publication detail pages now show an internal audit trail for metadata updates, publication-ready changes and publish marks.
+- Reviewer and anonymous users are redirected away from editorial routes, and callback URLs preserve the concrete target page.
 
 Run the app:
 
@@ -178,6 +186,7 @@ src/
       community/
       dashboard/
       editor/
+        issues/
         publications/
       manifesto/
       reviewer/

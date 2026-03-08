@@ -120,9 +120,18 @@ export default async function EditorialSubmissionDetailPage({
           href: "/editor/publications",
           label: copy.editor.publicationsTitle,
         },
+        {
+          href: "/editor/issues",
+          label: copy.editor.issuesTitle,
+        },
       ]}
       action={
         <>
+          <Button asChild variant="outline" size="sm">
+            <LocaleLink locale={locale} href="/editor/issues">
+              {copy.editor.issuesTitle}
+            </LocaleLink>
+          </Button>
           <Button asChild variant="outline" size="sm">
             <LocaleLink locale={locale} href="/editor/submissions">
               {copy.submission.backToQueueLabel}

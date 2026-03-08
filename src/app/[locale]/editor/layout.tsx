@@ -4,7 +4,6 @@ import { unstable_noStore as noStore } from "next/cache";
 import { setRequestLocale } from "next-intl/server";
 
 import type { Locale } from "@/i18n/routing";
-import { requireEditorUser } from "@/lib/auth-guards";
 
 type EditorLayoutProps = {
   children: ReactNode;
@@ -21,8 +20,6 @@ export default async function EditorLayout({
 }: EditorLayoutProps) {
   noStore();
   setRequestLocale(params.locale);
-
-  await requireEditorUser(params.locale);
 
   return children;
 }

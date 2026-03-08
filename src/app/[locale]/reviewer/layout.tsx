@@ -4,7 +4,6 @@ import { unstable_noStore as noStore } from "next/cache";
 import { setRequestLocale } from "next-intl/server";
 
 import type { Locale } from "@/i18n/routing";
-import { requireReviewerUser } from "@/lib/auth-guards";
 
 type ReviewerLayoutProps = {
   children: ReactNode;
@@ -21,8 +20,6 @@ export default async function ReviewerLayout({
 }: ReviewerLayoutProps) {
   noStore();
   setRequestLocale(params.locale);
-
-  await requireReviewerUser(params.locale);
 
   return children;
 }

@@ -10,6 +10,7 @@ import { PublicationStateBadge } from "@/components/submissions/publication-stat
 import { SubmissionStatusBadge } from "@/components/submissions/submission-status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import type { Locale } from "@/i18n/routing";
 import { getPlatformCopy } from "@/lib/platform-copy";
 import {
@@ -28,6 +29,7 @@ type EditorSubmissionsPageProps = {
   searchParams?: {
     status?: string;
     language?: string;
+    q?: string;
   };
 };
 
@@ -58,11 +60,12 @@ export default async function EditorSubmissionsPage({
     manuscriptLanguages.includes(searchParams.language as (typeof manuscriptLanguages)[number])
       ? searchParams.language
       : "all";
+  const query = searchParams?.q?.trim() ?? "";
 
   const copy = getPlatformCopy(locale);
   const uiCopy = getSubmissionUiCopy(locale);
-  const submissions = await listEditorialSubmissions({ status, language });
-  const hasActiveFilters = status !== "ALL" || language !== "all";
+  const submissions = await listEditorialSubmissions({ status, language, query });
+  const hasActiveFilters = status !== "ALL" || language !== "all" || Boolean(query);
 
   return (
     <DashboardShell
@@ -83,9 +86,18 @@ export default async function EditorSubmissionsPage({
           href: "/editor/publications",
           label: copy.editor.publicationsTitle,
         },
+        {
+          href: "/editor/issues",
+          label: copy.editor.issuesTitle,
+        },
       ]}
       action={
         <>
+          <Button asChild variant="outline" size="sm">
+            <LocaleLink locale={locale} href="/editor/issues">
+              {copy.editor.issuesTitle}
+            </LocaleLink>
+          </Button>
           <Button asChild variant="outline" size="sm">
             <LocaleLink locale={locale} href="/editor/publications">
               {copy.editor.publicationsTitle}
@@ -101,7 +113,17 @@ export default async function EditorSubmissionsPage({
             <CardTitle>{uiCopy.editor.filtersTitle}</CardTitle>
           </CardHeader>
           <CardContent>
-            <form className="grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
+            <form className="grid gap-4 md:grid-cols-[1.2fr_1fr_1fr_auto] md:items-end">
+              <div className="space-y-2">
+                <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                  {locale === "zh" ? "搜索标题、编号、作者或关键词" : "Search title, ID, author or keywords"}
+                </label>
+                <Input
+                  name="q"
+                  defaultValue={query}
+                  placeholder={locale === "zh" ? "例如：FJ- 或 contributor" : "For example: FJ- or contributor"}
+                />
+              </div>
               <div className="space-y-2">
                 <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
                   {uiCopy.editor.statusFilterLabel}
@@ -232,8 +254,8 @@ export default async function EditorSubmissionsPage({
                 <p className="mt-4 font-sans text-xs uppercase tracking-[0.2em] text-muted-foreground">
                   {hasActiveFilters
                     ? locale === "zh"
-                      ? "可调整状态或语言筛选后重试。"
-                      : "Adjust the status or language filters to broaden the queue."
+                      ? "可调整搜索词、状态或语言筛选后重试。"
+                      : "Adjust the query, status or language filters to broaden the queue."
                     : locale === "zh"
                       ? "当前不需要执行状态更新。"
                       : "No status changes are waiting for editorial action."}

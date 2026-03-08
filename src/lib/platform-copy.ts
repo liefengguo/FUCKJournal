@@ -52,6 +52,7 @@ type EditorCopy = {
   overviewTitle: string;
   queueTitle: string;
   publicationsTitle: string;
+  issuesTitle: string;
   emptyTitle: string;
   emptyBody: string;
   submittedCountLabel: string;
@@ -204,6 +205,7 @@ const copy: Localized<PlatformCopy> = {
       overviewTitle: "Queue overview",
       queueTitle: "Active submissions",
       publicationsTitle: "Publication queue",
+      issuesTitle: "Issue planning",
       emptyTitle: "No active submissions",
       emptyBody: "Submitted manuscripts will appear here once authors send them to the queue.",
       submittedCountLabel: "Submitted",
@@ -356,6 +358,7 @@ const copy: Localized<PlatformCopy> = {
       overviewTitle: "队列概览",
       queueTitle: "活跃稿件",
       publicationsTitle: "出版队列",
+      issuesTitle: "期次规划",
       emptyTitle: "当前没有活跃稿件",
       emptyBody: "作者正式提交后，稿件会出现在这里。",
       submittedCountLabel: "已提交",
