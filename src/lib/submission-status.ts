@@ -1,4 +1,5 @@
 import type {
+  PublicationAuditAction,
   ReviewDecision,
   ReviewerAssignmentStatus,
   SubmissionStatus,
@@ -151,4 +152,28 @@ export function getPublicationPipelineStateLabel(
   };
 
   return labels[locale][state];
+}
+
+export function getPublicationAuditActionLabel(
+  action: PublicationAuditAction,
+  locale: Locale,
+) {
+  const labels: Record<Locale, Record<PublicationAuditAction, string>> = {
+    en: {
+      METADATA_UPDATED: "Metadata updated",
+      MARKED_READY: "Marked publication-ready",
+      MARKED_UNREADY: "Removed from publication-ready",
+      MARKED_PUBLISHED: "Marked published",
+      MARKED_UNPUBLISHED: "Publication mark removed",
+    },
+    zh: {
+      METADATA_UPDATED: "已更新出版元数据",
+      MARKED_READY: "已标记为出版准备就绪",
+      MARKED_UNREADY: "已取消出版准备状态",
+      MARKED_PUBLISHED: "已标记为发布",
+      MARKED_UNPUBLISHED: "已取消发布标记",
+    },
+  };
+
+  return labels[locale][action];
 }

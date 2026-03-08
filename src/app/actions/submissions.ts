@@ -62,6 +62,7 @@ function revalidateEditorAndReviewerPaths(locale: Locale, publicId?: string) {
   revalidatePath(`/${locale}/editor`);
   revalidatePath(`/${locale}/editor/submissions`);
   revalidatePath(`/${locale}/editor/publications`);
+  revalidatePath(`/${locale}/editor/issues`);
   revalidatePath(`/${locale}/reviewer`);
   revalidatePath(`/${locale}/reviewer/submissions`);
 

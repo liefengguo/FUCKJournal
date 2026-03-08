@@ -36,6 +36,14 @@ enum ReviewDecision {
   REJECT
 }
 
+enum PublicationAuditAction {
+  METADATA_UPDATED
+  MARKED_READY
+  MARKED_UNREADY
+  MARKED_PUBLISHED
+  MARKED_UNPUBLISHED
+}
+
 model User {
   id                         String                  @id @default(cuid())
   name                       String?
@@ -51,6 +59,7 @@ model User {
   reviewerAssignments        ReviewerAssignment[]    @relation("ReviewerAssignments")
   reviewerAssignmentsCreated ReviewerAssignment[]    @relation("ReviewerAssigner")
   reviews                    Review[]                @relation("ReviewerReviews")
+  publicationAuditEvents     PublicationAuditEvent[] @relation("PublicationAuditActor")
 }
 
 model Submission {
@@ -98,12 +107,14 @@ model Submission {
   internalNotes                InternalEditorNote[]
   reviewerAssignments          ReviewerAssignment[]
   reviews                      Review[]
+  publicationAuditEvents       PublicationAuditEvent[]
 
   @@index([authorId, status])
   @@index([status, updatedAt])
   @@index([status, isPublicationReady, publishedAt])
   @@index([manuscriptLanguage])
   @@index([publicationLocale])
+  @@index([publicationYear, publicationVolume, publicationIssue])
 }
 
 model SubmissionVersion {
@@ -165,6 +176,20 @@ model InternalEditorNote {
   author       User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([submissionId, createdAt])
+}
+
+model PublicationAuditEvent {
+  id            String                 @id @default(cuid())
+  submissionId  String
+  actorId       String
+  action        PublicationAuditAction
+  changedFields String[]               @default([])
+  createdAt     DateTime               @default(now())
+  submission    Submission             @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  actor         User                   @relation("PublicationAuditActor", fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId, createdAt])
+  @@index([actorId, createdAt])
 }
 
 model ReviewerAssignment {

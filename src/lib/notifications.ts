@@ -1,19 +1,24 @@
-type NotificationEventType =
+export type NotificationEventType =
   | "submission_submitted"
   | "submission_status_changed"
   | "submission_revision_requested"
   | "submission_accepted"
   | "submission_rejected"
-  | "reviewer_assigned";
+  | "reviewer_assigned"
+  | "reviewer_unassigned"
+  | "review_submitted"
+  | "publication_metadata_updated"
+  | "publication_ready_marked"
+  | "publication_published";
 
-type NotificationEvent = {
+export type NotificationEvent = {
   type: NotificationEventType;
   submissionPublicId: string;
   recipients?: string[];
-  context: Record<string, string | number | boolean | null | undefined>;
+  context: Record<string, unknown>;
 };
 
-type NotificationProvider = {
+export type NotificationProvider = {
   send(event: NotificationEvent): Promise<void>;
 };
 
@@ -23,6 +28,7 @@ class MockNotificationProvider implements NotificationProvider {
       `[notification:${event.type}]`,
       JSON.stringify(
         {
+          timestamp: new Date().toISOString(),
           submissionPublicId: event.submissionPublicId,
           recipients: event.recipients ?? [],
           context: event.context,

@@ -10,7 +10,4 @@ ADD COLUMN     "seoDescription" TEXT,
 ADD COLUMN     "seoTitle" TEXT;
 
 -- CreateIndex
-CREATE INDEX "Submission_status_isPublicationReady_publishedAt_idx" ON "Submission"("status", "isPublicationReady", "publishedAt");
-
--- CreateIndex
 CREATE INDEX "Submission_publicationLocale_idx" ON "Submission"("publicationLocale");
