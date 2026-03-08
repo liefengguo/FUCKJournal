@@ -23,6 +23,30 @@ type SignInFormProps = {
   callbackUrl?: string | null;
 };
 
+async function getResolvedRole(
+  attempts = 5,
+): Promise<"USER" | "REVIEWER" | "EDITOR" | "ADMIN" | null> {
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const session = await getSession();
+    const role = session?.user.role;
+
+    if (
+      role === "USER" ||
+      role === "REVIEWER" ||
+      role === "EDITOR" ||
+      role === "ADMIN"
+    ) {
+      return role;
+    }
+
+    await new Promise((resolve) => {
+      window.setTimeout(resolve, 120 * (attempt + 1));
+    });
+  }
+
+  return null;
+}
+
 export function SignInForm({ locale, callbackUrl }: SignInFormProps) {
   const copy = getPlatformCopy(locale).signIn;
   const router = useRouter();
@@ -61,8 +85,8 @@ export function SignInForm({ locale, callbackUrl }: SignInFormProps) {
           return;
         }
 
-        const session = await getSession();
-        const fallbackPath = getRoleHomePath(locale, session?.user.role ?? "USER");
+        const resolvedRole = await getResolvedRole();
+        const fallbackPath = getRoleHomePath(locale, resolvedRole ?? "USER");
         const nextPath = getSafeCallbackUrl(callbackUrl, locale, fallbackPath);
         const nextUrl = new URL(nextPath, window.location.origin);
         nextUrl.searchParams.set("notice", "signed-in");

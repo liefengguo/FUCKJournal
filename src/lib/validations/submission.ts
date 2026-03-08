@@ -50,8 +50,11 @@ export const submissionDraftSchema = z.object({
     .optional(),
   manuscriptSizeBytes: z
     .union([z.number().int().nonnegative(), z.nan()])
+    .nullable()
     .optional()
-    .transform((value) => (typeof value === "number" && !Number.isNaN(value) ? value : null)),
+    .transform((value) =>
+      typeof value === "number" && !Number.isNaN(value) ? value : null,
+    ),
   sourceArchiveFileName: z
     .string()
     .trim()
@@ -75,8 +78,11 @@ export const submissionDraftSchema = z.object({
     .optional(),
   sourceArchiveSizeBytes: z
     .union([z.number().int().nonnegative(), z.nan()])
+    .nullable()
     .optional()
-    .transform((value) => (typeof value === "number" && !Number.isNaN(value) ? value : null)),
+    .transform((value) =>
+      typeof value === "number" && !Number.isNaN(value) ? value : null,
+    ),
 });
 
 export const submitManuscriptSchema = submissionDraftSchema.extend({

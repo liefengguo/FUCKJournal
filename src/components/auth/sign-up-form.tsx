@@ -16,11 +16,36 @@ import {
 } from "@/lib/feedback";
 import { getSafeCallbackUrl } from "@/lib/auth-routing";
 import { getPlatformCopy } from "@/lib/platform-copy";
+import { getSession } from "next-auth/react";
 
 type SignUpFormProps = {
   locale: Locale;
   callbackUrl?: string | null;
 };
+
+async function getResolvedRole(
+  attempts = 5,
+): Promise<"USER" | "REVIEWER" | "EDITOR" | "ADMIN" | null> {
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const session = await getSession();
+    const role = session?.user.role;
+
+    if (
+      role === "USER" ||
+      role === "REVIEWER" ||
+      role === "EDITOR" ||
+      role === "ADMIN"
+    ) {
+      return role;
+    }
+
+    await new Promise((resolve) => {
+      window.setTimeout(resolve, 120 * (attempt + 1));
+    });
+  }
+
+  return null;
+}
 
 export function SignUpForm({ locale, callbackUrl }: SignUpFormProps) {
   const copy = getPlatformCopy(locale).signUp;
@@ -78,7 +103,16 @@ export function SignUpForm({ locale, callbackUrl }: SignUpFormProps) {
           return;
         }
 
-        const nextPath = getSafeCallbackUrl(callbackUrl, locale, `/${locale}/dashboard`);
+        const resolvedRole = await getResolvedRole();
+        const nextPath = getSafeCallbackUrl(
+          callbackUrl,
+          locale,
+          resolvedRole === "EDITOR" || resolvedRole === "ADMIN"
+            ? `/${locale}/editor`
+            : resolvedRole === "REVIEWER"
+              ? `/${locale}/reviewer`
+              : `/${locale}/dashboard`,
+        );
         const nextUrl = new URL(nextPath, window.location.origin);
         nextUrl.searchParams.set("notice", "account-created");
 

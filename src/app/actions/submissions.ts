@@ -3,6 +3,7 @@
 import type { SubmissionStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { isRedirectError } from "next/dist/client/components/redirect";
 
 import type { Locale } from "@/i18n/routing";
 import {
@@ -106,6 +107,10 @@ export async function createDraftAction(formData: FormData) {
       ),
     );
   } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+
     const message =
       error instanceof SubmissionError ? error.code : "draft-create-failed";
     redirect(buildNoticeUrl(`/${locale}/dashboard/submissions/new`, "error", message));
@@ -198,6 +203,10 @@ export async function saveDraftAction(formData: FormData) {
       ),
     );
   } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+
     const message =
       error instanceof SubmissionError ? error.code : "draft-save-failed";
     redirect(
@@ -233,6 +242,10 @@ export async function submitDraftAction(formData: FormData) {
       ),
     );
   } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+
     const message =
       error instanceof SubmissionError ? error.code : "draft-submit-failed";
     redirect(
@@ -261,6 +274,10 @@ export async function addInternalNoteAction(formData: FormData) {
       buildNoticeUrl(`/${locale}/editor/submissions/${publicId}`, "notice", "note-added"),
     );
   } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+
     const message =
       error instanceof SubmissionError ? error.code : "internal-note-failed";
     redirect(
@@ -293,6 +310,10 @@ export async function assignReviewerAction(formData: FormData) {
       ),
     );
   } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+
     const message =
       error instanceof SubmissionError ? error.code : "reviewer-assignment-failed";
     redirect(
@@ -325,6 +346,10 @@ export async function removeReviewerAssignmentAction(formData: FormData) {
       ),
     );
   } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+
     const message =
       error instanceof SubmissionError ? error.code : "reviewer-removal-failed";
     redirect(
@@ -365,6 +390,10 @@ export async function saveReviewerReviewAction(formData: FormData) {
       ),
     );
   } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+
     const message =
       error instanceof SubmissionError ? error.code : "review-save-failed";
     logOperationalFailure("review.submission.failure", error, {
@@ -459,6 +488,10 @@ export async function updatePublicationSettingsAction(formData: FormData) {
       ),
     );
   } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+
     const message =
       error instanceof SubmissionError ? error.code : "publication-update-failed";
     logOperationalFailure("publication.transition.failure", error, {
@@ -526,6 +559,10 @@ export async function updateSubmissionStatusAction(formData: FormData) {
       buildNoticeUrl(`/${locale}/editor/submissions/${publicId}`, "notice", "updated"),
     );
   } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+
     const message =
       error instanceof SubmissionError ? error.code : "status-update-failed";
     redirect(
