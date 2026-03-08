@@ -45,27 +45,35 @@ export function SignInForm({ locale, callbackUrl }: SignInFormProps) {
     setMessages([]);
 
     startTransition(async () => {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
+      try {
+        const result = await signIn("credentials", {
+          email,
+          password,
+          redirect: false,
+        });
 
-      if (!result || result.error) {
+        if (!result || result.error) {
+          setMessages([
+            getAuthFeedback(locale, result?.error ?? "invalid-credentials") ??
+              getAuthFeedback(locale, "invalid-credentials") ??
+              `${copy.errorPrefix}.`,
+          ]);
+          return;
+        }
+
+        const session = await getSession();
+        const fallbackPath = getRoleHomePath(locale, session?.user.role ?? "USER");
+        const nextPath = getSafeCallbackUrl(callbackUrl, locale, fallbackPath);
+        const nextUrl = new URL(nextPath, window.location.origin);
+        nextUrl.searchParams.set("notice", "signed-in");
+
+        router.push(`${nextUrl.pathname}${nextUrl.search}`);
+        router.refresh();
+      } catch {
         setMessages([
-          getAuthFeedback(locale, "invalid-credentials") ?? `${copy.errorPrefix}.`,
+          getAuthFeedback(locale, "invalid-auth-request") ?? `${copy.errorPrefix}.`,
         ]);
-        return;
       }
-
-      const session = await getSession();
-      const fallbackPath = getRoleHomePath(locale, session?.user.role ?? "USER");
-      const nextPath = getSafeCallbackUrl(callbackUrl, locale, fallbackPath);
-      const nextUrl = new URL(nextPath, window.location.origin);
-      nextUrl.searchParams.set("notice", "signed-in");
-
-      router.push(`${nextUrl.pathname}${nextUrl.search}`);
-      router.refresh();
     });
   }
 

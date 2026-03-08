@@ -44,43 +44,51 @@ export function SignUpForm({ locale, callbackUrl }: SignUpFormProps) {
     setMessages([]);
 
     startTransition(async () => {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      try {
+        const response = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
 
-      if (!response.ok) {
-        const body = (await response.json().catch(() => null)) as
-          | { errorCode?: string }
-          | null;
+        if (!response.ok) {
+          const body = (await response.json().catch(() => null)) as
+            | { errorCode?: string }
+            | null;
+          setMessages([
+            getAuthFeedback(locale, body?.errorCode) ?? `${copy.errorPrefix}.`,
+          ]);
+          return;
+        }
+
+        const result = await signIn("credentials", {
+          email: payload.email,
+          password: payload.password,
+          redirect: false,
+        });
+
+        if (!result || result.error) {
+          setMessages([
+            getAuthFeedback(locale, result?.error ?? "invalid-credentials") ??
+              getAuthFeedback(locale, "invalid-credentials") ??
+              `${copy.errorPrefix}.`,
+          ]);
+          return;
+        }
+
+        const nextPath = getSafeCallbackUrl(callbackUrl, locale, `/${locale}/dashboard`);
+        const nextUrl = new URL(nextPath, window.location.origin);
+        nextUrl.searchParams.set("notice", "account-created");
+
+        router.push(`${nextUrl.pathname}${nextUrl.search}`);
+        router.refresh();
+      } catch {
         setMessages([
-          getAuthFeedback(locale, body?.errorCode) ?? `${copy.errorPrefix}.`,
+          getAuthFeedback(locale, "registration-unavailable") ?? `${copy.errorPrefix}.`,
         ]);
-        return;
       }
-
-      const result = await signIn("credentials", {
-        email: payload.email,
-        password: payload.password,
-        redirect: false,
-      });
-
-      if (!result || result.error) {
-        setMessages([
-          getAuthFeedback(locale, "invalid-credentials") ?? `${copy.errorPrefix}.`,
-        ]);
-        return;
-      }
-
-      const nextPath = getSafeCallbackUrl(callbackUrl, locale, `/${locale}/dashboard`);
-      const nextUrl = new URL(nextPath, window.location.origin);
-      nextUrl.searchParams.set("notice", "account-created");
-
-      router.push(`${nextUrl.pathname}${nextUrl.search}`);
-      router.refresh();
     });
   }
 

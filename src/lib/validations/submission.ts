@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const manuscriptLanguages = ["en", "zh", "bilingual", "other"] as const;
 export const uploadKinds = ["manuscript", "source"] as const;
+export const publicIdSchema = z.string().trim().regex(/^FJ-[A-Z0-9-]{6,64}$/);
 
 const keywordSchema = z.string().trim().min(1).max(60);
 

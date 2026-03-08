@@ -22,9 +22,10 @@ import {
   updateEditorialSubmissionStatus,
   updatePublicationSettings,
 } from "@/lib/submissions";
+import { logOperationalFailure } from "@/lib/observability";
 import { getEditorStatusTransitions } from "@/lib/submission-status";
 import { publicationLocaleValues } from "@/lib/validations/publication";
-import { manuscriptLanguages } from "@/lib/validations/submission";
+import { manuscriptLanguages, publicIdSchema } from "@/lib/validations/submission";
 
 function getLocale(value: FormDataEntryValue | null): Locale {
   return value === "zh" ? "zh" : "en";
@@ -44,6 +45,21 @@ function getFormString(formData: FormData, key: string) {
 function getOptionalString(formData: FormData, key: string) {
   const value = getFormString(formData, key).trim();
   return value || null;
+}
+
+function getValidatedPublicId(
+  locale: Locale,
+  formData: FormData,
+  fallbackPath: string,
+) {
+  const publicId = getFormString(formData, "publicId");
+  const parsed = publicIdSchema.safeParse(publicId);
+
+  if (!parsed.success) {
+    redirect(buildNoticeUrl(fallbackPath, "error", "invalid-public-id"));
+  }
+
+  return parsed.data;
 }
 
 function getEditorReturnPath(locale: Locale, formData: FormData, fallback: string) {
@@ -98,7 +114,11 @@ export async function createDraftAction(formData: FormData) {
 
 export async function saveDraftAction(formData: FormData) {
   const locale = getLocale(formData.get("locale"));
-  const publicId = getFormString(formData, "publicId");
+  const publicId = getValidatedPublicId(
+    locale,
+    formData,
+    `/${locale}/dashboard/submissions`,
+  );
   const user = await requireContributorUser(
     locale,
     `/${locale}/dashboard/submissions/${publicId}/edit`,
@@ -188,7 +208,11 @@ export async function saveDraftAction(formData: FormData) {
 
 export async function submitDraftAction(formData: FormData) {
   const locale = getLocale(formData.get("locale"));
-  const publicId = getFormString(formData, "publicId");
+  const publicId = getValidatedPublicId(
+    locale,
+    formData,
+    `/${locale}/dashboard/submissions`,
+  );
   const user = await requireContributorUser(
     locale,
     `/${locale}/dashboard/submissions/${publicId}/edit`,
@@ -219,7 +243,11 @@ export async function submitDraftAction(formData: FormData) {
 
 export async function addInternalNoteAction(formData: FormData) {
   const locale = getLocale(formData.get("locale"));
-  const publicId = getFormString(formData, "publicId");
+  const publicId = getValidatedPublicId(
+    locale,
+    formData,
+    `/${locale}/editor/submissions`,
+  );
   const user = await requireEditorUser(
     locale,
     `/${locale}/editor/submissions/${publicId}`,
@@ -243,7 +271,11 @@ export async function addInternalNoteAction(formData: FormData) {
 
 export async function assignReviewerAction(formData: FormData) {
   const locale = getLocale(formData.get("locale"));
-  const publicId = getFormString(formData, "publicId");
+  const publicId = getValidatedPublicId(
+    locale,
+    formData,
+    `/${locale}/editor/submissions`,
+  );
   const reviewerId = getFormString(formData, "reviewerId");
   const user = await requireEditorUser(
     locale,
@@ -271,7 +303,11 @@ export async function assignReviewerAction(formData: FormData) {
 
 export async function removeReviewerAssignmentAction(formData: FormData) {
   const locale = getLocale(formData.get("locale"));
-  const publicId = getFormString(formData, "publicId");
+  const publicId = getValidatedPublicId(
+    locale,
+    formData,
+    `/${locale}/editor/submissions`,
+  );
   const reviewerId = getFormString(formData, "reviewerId");
   const user = await requireEditorUser(
     locale,
@@ -299,7 +335,11 @@ export async function removeReviewerAssignmentAction(formData: FormData) {
 
 export async function saveReviewerReviewAction(formData: FormData) {
   const locale = getLocale(formData.get("locale"));
-  const publicId = getFormString(formData, "publicId");
+  const publicId = getValidatedPublicId(
+    locale,
+    formData,
+    `/${locale}/reviewer/submissions`,
+  );
   const user = await requireReviewerUser(
     locale,
     `/${locale}/reviewer/submissions/${publicId}`,
@@ -327,6 +367,12 @@ export async function saveReviewerReviewAction(formData: FormData) {
   } catch (error) {
     const message =
       error instanceof SubmissionError ? error.code : "review-save-failed";
+    logOperationalFailure("review.submission.failure", error, {
+      action: "saveReviewerReviewAction",
+      locale,
+      publicId,
+      reviewerId: user.id,
+    });
     redirect(
       buildNoticeUrl(`/${locale}/reviewer/submissions/${publicId}`, "error", message),
     );
@@ -335,7 +381,11 @@ export async function saveReviewerReviewAction(formData: FormData) {
 
 export async function updatePublicationSettingsAction(formData: FormData) {
   const locale = getLocale(formData.get("locale"));
-  const publicId = getFormString(formData, "publicId");
+  const publicId = getValidatedPublicId(
+    locale,
+    formData,
+    `/${locale}/editor/publications`,
+  );
   const returnPath = getEditorReturnPath(
     locale,
     formData,
@@ -411,6 +461,13 @@ export async function updatePublicationSettingsAction(formData: FormData) {
   } catch (error) {
     const message =
       error instanceof SubmissionError ? error.code : "publication-update-failed";
+    logOperationalFailure("publication.transition.failure", error, {
+      action: "updatePublicationSettingsAction",
+      locale,
+      publicId,
+      editorId: user.id,
+      returnPath,
+    });
     redirect(
       buildNoticeUrl(returnPath, "error", message),
     );
@@ -419,7 +476,11 @@ export async function updatePublicationSettingsAction(formData: FormData) {
 
 export async function updateSubmissionStatusAction(formData: FormData) {
   const locale = getLocale(formData.get("locale"));
-  const publicId = getFormString(formData, "publicId");
+  const publicId = getValidatedPublicId(
+    locale,
+    formData,
+    `/${locale}/editor/submissions`,
+  );
   const user = await requireEditorUser(
     locale,
     `/${locale}/editor/submissions/${publicId}`,

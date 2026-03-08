@@ -2,9 +2,15 @@ import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/auth";
 import { jsonNoStore } from "@/lib/api-security";
+import {
+  getRequestMeta,
+  logOperationalFailure,
+  logOperationalWarning,
+} from "@/lib/observability";
 import { buildPublicationJson } from "@/lib/publication-export";
 import { isStaffRole } from "@/lib/submission-status";
 import { getPublicationExportSource } from "@/lib/submissions";
+import { publicIdSchema } from "@/lib/validations/submission";
 
 type RouteContext = {
   params: {
@@ -15,7 +21,8 @@ type RouteContext = {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(_: Request, { params }: RouteContext) {
+export async function GET(request: Request, { params }: RouteContext) {
+  const requestMeta = getRequestMeta(request);
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
@@ -26,21 +33,41 @@ export async function GET(_: Request, { params }: RouteContext) {
     return jsonNoStore({ errorCode: "editor-only" }, { status: 403 });
   }
 
-  const submission = await getPublicationExportSource(params.publicId);
+  const parsedPublicId = publicIdSchema.safeParse(params.publicId);
 
-  if (!submission) {
-    return jsonNoStore({ errorCode: "submission-not-found" }, { status: 404 });
+  if (!parsedPublicId.success) {
+    logOperationalWarning("publication.export.json.invalid_public_id", {
+      ...requestMeta,
+      userId: session.user.id,
+      publicId: params.publicId,
+    });
+    return jsonNoStore({ errorCode: "invalid-public-id" }, { status: 400 });
   }
 
-  const payload = JSON.stringify(buildPublicationJson(submission), null, 2);
-  const fileName = `${submission.publicationSlug ?? submission.publicId.toLowerCase()}-draft.json`;
+  try {
+    const submission = await getPublicationExportSource(parsedPublicId.data);
 
-  return new Response(payload, {
-    status: 200,
-    headers: {
-      "Cache-Control": "no-store",
-      "Content-Type": "application/json; charset=utf-8",
-      "Content-Disposition": `attachment; filename="${encodeURIComponent(fileName)}"`,
-    },
-  });
+    if (!submission) {
+      return jsonNoStore({ errorCode: "submission-not-found" }, { status: 404 });
+    }
+
+    const payload = JSON.stringify(buildPublicationJson(submission), null, 2);
+    const fileName = `${submission.publicationSlug ?? submission.publicId.toLowerCase()}-draft.json`;
+
+    return new Response(payload, {
+      status: 200,
+      headers: {
+        "Cache-Control": "no-store",
+        "Content-Type": "application/json; charset=utf-8",
+        "Content-Disposition": `attachment; filename="${encodeURIComponent(fileName)}"`,
+      },
+    });
+  } catch (error) {
+    logOperationalFailure("publication.export.json.failure", error, {
+      ...requestMeta,
+      userId: session.user.id,
+      publicId: parsedPublicId.data,
+    });
+    return jsonNoStore({ errorCode: "export-failed" }, { status: 500 });
+  }
 }

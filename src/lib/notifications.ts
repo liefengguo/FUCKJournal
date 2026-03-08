@@ -1,3 +1,9 @@
+import {
+  logOperationalEvent,
+  logOperationalFailure,
+  logOperationalWarning,
+} from "@/lib/observability";
+
 export type NotificationEventType =
   | "submission_submitted"
   | "submission_status_changed"
@@ -24,19 +30,11 @@ export type NotificationProvider = {
 
 class MockNotificationProvider implements NotificationProvider {
   async send(event: NotificationEvent) {
-    console.info(
-      `[notification:${event.type}]`,
-      JSON.stringify(
-        {
-          timestamp: new Date().toISOString(),
-          submissionPublicId: event.submissionPublicId,
-          recipients: event.recipients ?? [],
-          context: event.context,
-        },
-        null,
-        2,
-      ),
-    );
+    logOperationalEvent(`notification.${event.type}`, {
+      submissionPublicId: event.submissionPublicId,
+      recipients: event.recipients ?? [],
+      context: event.context,
+    });
   }
 }
 
@@ -51,6 +49,10 @@ function getNotificationProvider(): NotificationProvider {
     return new DisabledNotificationProvider();
   }
 
+  if (provider !== "mock") {
+    logOperationalWarning("notification.unknown_provider", { provider });
+  }
+
   return new MockNotificationProvider();
 }
 
@@ -58,6 +60,10 @@ export async function sendNotification(event: NotificationEvent) {
   try {
     await getNotificationProvider().send(event);
   } catch (error) {
-    console.error("Notification dispatch failed", error);
+    logOperationalFailure("notification.dispatch_failed", error, {
+      eventType: event.type,
+      submissionPublicId: event.submissionPublicId,
+      recipients: event.recipients ?? [],
+    });
   }
 }

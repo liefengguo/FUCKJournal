@@ -1,9 +1,21 @@
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/auth";
-import { jsonNoStore, hasTrustedOrigin } from "@/lib/api-security";
+import {
+  buildRateLimitHeaders,
+  hasTrustedOrigin,
+  isMultipartRequest,
+  isRequestTooLarge,
+  jsonNoStore,
+} from "@/lib/api-security";
+import {
+  getRequestMeta,
+  logOperationalFailure,
+  logOperationalWarning,
+} from "@/lib/observability";
+import { checkRateLimit, getEnvNumber } from "@/lib/rate-limit";
 import { replaceSubmissionAsset, SubmissionError } from "@/lib/submissions";
-import { uploadKinds } from "@/lib/validations/submission";
+import { publicIdSchema, uploadKinds } from "@/lib/validations/submission";
 
 type RouteContext = {
   params: {
@@ -12,14 +24,80 @@ type RouteContext = {
 };
 
 export async function POST(request: Request, { params }: RouteContext) {
+  const requestMeta = getRequestMeta(request);
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
     return jsonNoStore({ errorCode: "auth-required" }, { status: 401 });
   }
 
+  const parsedPublicId = publicIdSchema.safeParse(params.publicId);
+
+  if (!parsedPublicId.success) {
+    logOperationalWarning("submission.upload.invalid_public_id", {
+      ...requestMeta,
+      userId: session.user.id,
+      publicId: params.publicId,
+    });
+    return jsonNoStore({ errorCode: "invalid-public-id" }, { status: 400 });
+  }
+
   if (!hasTrustedOrigin(request)) {
+    logOperationalWarning("submission.upload.forbidden_origin", {
+      ...requestMeta,
+      userId: session.user.id,
+      publicId: parsedPublicId.data,
+    });
     return jsonNoStore({ errorCode: "forbidden-origin" }, { status: 403 });
+  }
+
+  if (!isMultipartRequest(request)) {
+    logOperationalWarning("submission.upload.invalid_content_type", {
+      ...requestMeta,
+      userId: session.user.id,
+      publicId: parsedPublicId.data,
+    });
+    return jsonNoStore({ errorCode: "unsupported-media-type" }, { status: 415 });
+  }
+
+  const uploadRequestLimit =
+    Math.max(
+      getEnvNumber("MAX_MANUSCRIPT_PDF_BYTES", 25 * 1024 * 1024),
+      getEnvNumber("MAX_SOURCE_ARCHIVE_BYTES", 50 * 1024 * 1024),
+    ) +
+    1024 * 1024;
+
+  if (isRequestTooLarge(request, uploadRequestLimit)) {
+    logOperationalWarning("submission.upload.request_too_large", {
+      ...requestMeta,
+      userId: session.user.id,
+      publicId: parsedPublicId.data,
+    });
+    return jsonNoStore({ errorCode: "request-too-large" }, { status: 413 });
+  }
+
+  const uploadRateLimit = checkRateLimit({
+    scope: "submission-upload",
+    identifier: `${requestMeta.ip}:${session.user.id}`,
+    limit: getEnvNumber("UPLOAD_RATE_LIMIT_MAX", 20),
+    windowMs: getEnvNumber("UPLOAD_RATE_LIMIT_WINDOW_MS", 15 * 60 * 1000),
+  });
+  const rateLimitHeaders = buildRateLimitHeaders(uploadRateLimit);
+  const rateLimitedHeaders = buildRateLimitHeaders(uploadRateLimit, {
+    includeRetryAfter: true,
+  });
+
+  if (!uploadRateLimit.ok) {
+    logOperationalWarning("submission.upload.rate_limited", {
+      ...requestMeta,
+      userId: session.user.id,
+      publicId: parsedPublicId.data,
+      retryAfterSeconds: uploadRateLimit.retryAfterSeconds,
+    });
+    return jsonNoStore(
+      { errorCode: "rate-limit-exceeded" },
+      { status: 429, headers: rateLimitedHeaders },
+    );
   }
 
   try {
@@ -31,17 +109,55 @@ export async function POST(request: Request, { params }: RouteContext) {
       typeof kind !== "string" ||
       !uploadKinds.includes(kind as (typeof uploadKinds)[number])
     ) {
-      return jsonNoStore({ errorCode: "invalid-draft-input" }, { status: 400 });
+      logOperationalWarning("submission.upload.invalid_kind", {
+        ...requestMeta,
+        userId: session.user.id,
+        publicId: parsedPublicId.data,
+        kind,
+      });
+      return jsonNoStore(
+        { errorCode: "invalid-draft-input" },
+        { status: 400, headers: rateLimitHeaders },
+      );
     }
 
     if (!(file instanceof File) || file.size === 0) {
-      return jsonNoStore({ errorCode: "invalid-draft-input" }, { status: 400 });
+      logOperationalWarning("submission.upload.invalid_file", {
+        ...requestMeta,
+        userId: session.user.id,
+        publicId: parsedPublicId.data,
+        kind,
+      });
+      return jsonNoStore(
+        { errorCode: "invalid-draft-input" },
+        { status: 400, headers: rateLimitHeaders },
+      );
     }
 
     const uploadKind = kind as (typeof uploadKinds)[number];
+    const maxBytes =
+      uploadKind === "manuscript"
+        ? getEnvNumber("MAX_MANUSCRIPT_PDF_BYTES", 25 * 1024 * 1024)
+        : getEnvNumber("MAX_SOURCE_ARCHIVE_BYTES", 50 * 1024 * 1024);
+
+    if (file.size > maxBytes) {
+      logOperationalWarning("submission.upload.file_too_large", {
+        ...requestMeta,
+        userId: session.user.id,
+        publicId: parsedPublicId.data,
+        kind: uploadKind,
+        fileSize: file.size,
+        maxBytes,
+      });
+      return jsonNoStore(
+        { errorCode: "upload-too-large" },
+        { status: 413, headers: rateLimitHeaders },
+      );
+    }
+
     const submission = await replaceSubmissionAsset(
       session.user,
-      params.publicId,
+      parsedPublicId.data,
       uploadKind,
       file,
     );
@@ -60,12 +176,18 @@ export async function POST(request: Request, { params }: RouteContext) {
           sourceArchiveSizeBytes: submission.sourceArchiveSizeBytes,
         },
       },
-      { status: 200 },
+      { status: 200, headers: rateLimitHeaders },
     );
   } catch (error) {
     const errorCode =
       error instanceof SubmissionError ? error.code : "upload-failed";
 
-    return jsonNoStore({ errorCode }, { status: 400 });
+    logOperationalFailure("submission.upload.failure", error, {
+      ...requestMeta,
+      userId: session.user.id,
+      publicId: parsedPublicId.data,
+    });
+
+    return jsonNoStore({ errorCode }, { status: 400, headers: rateLimitHeaders });
   }
 }

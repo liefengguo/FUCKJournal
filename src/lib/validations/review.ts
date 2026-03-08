@@ -15,11 +15,21 @@ const optionalLongText = z
   .nullable()
   .optional();
 
-export const reviewInputSchema = z.object({
-  decision: z.enum(reviewDecisionValues),
-  commentsToAuthor: optionalLongText,
-  commentsToEditor: optionalLongText,
-});
+export const reviewInputSchema = z
+  .object({
+    decision: z.enum(reviewDecisionValues),
+    commentsToAuthor: optionalLongText,
+    commentsToEditor: optionalLongText,
+  })
+  .superRefine((value, context) => {
+    if (!value.commentsToAuthor && !value.commentsToEditor) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["commentsToAuthor"],
+        message: "at least one review comment is required",
+      });
+    }
+  });
 
 export const reviewerAssignmentSchema = z.object({
   reviewerId: z.string().cuid(),

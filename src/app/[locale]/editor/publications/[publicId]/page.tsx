@@ -9,6 +9,7 @@ import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { FlashMessage } from "@/components/dashboard/flash-message";
 import { LocaleLink } from "@/components/locale-link";
 import { PublicationAuditTrail } from "@/components/submissions/publication-audit-trail";
+import { PublicationExportPanel } from "@/components/submissions/publication-export-panel";
 import { PublicationStateBadge } from "@/components/submissions/publication-state-badge";
 import { SubmissionFilePanel } from "@/components/submissions/submission-file-panel";
 import { SubmissionStructuredContent } from "@/components/submissions/submission-structured-content";
@@ -428,40 +429,7 @@ export default async function PublicationDetailPage({
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="rounded-[24px] border border-border/60 px-5 py-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="space-y-2">
-                    <p className="font-serif text-lg">
-                      {uiCopy.publication.exportMarkdownLabel}
-                    </p>
-                    <p className="font-serif text-base text-muted-foreground">
-                      {uiCopy.publication.exportMarkdownHint}
-                    </p>
-                  </div>
-                  <Button asChild size="sm">
-                    <a href={`/api/editor/publications/${publicId}/markdown`}>
-                      {uiCopy.publication.exportMarkdownLabel}
-                    </a>
-                  </Button>
-                </div>
-              </div>
-              <div className="rounded-[24px] border border-border/60 px-5 py-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="space-y-2">
-                    <p className="font-serif text-lg">
-                      {uiCopy.publication.exportJsonLabel}
-                    </p>
-                    <p className="font-serif text-base text-muted-foreground">
-                      {uiCopy.publication.exportJsonHint}
-                    </p>
-                  </div>
-                  <Button asChild variant="outline" size="sm">
-                    <a href={`/api/editor/publications/${publicId}/json`}>
-                      {uiCopy.publication.exportJsonLabel}
-                    </a>
-                  </Button>
-                </div>
-              </div>
+              <PublicationExportPanel locale={locale} publicId={publicId} />
               <Button asChild variant="ghost" className="w-full justify-center">
                 <LocaleLink locale={locale} href={`/editor/submissions/${publicId}`}>
                   {uiCopy.publication.reviewWorkspaceLinkLabel}

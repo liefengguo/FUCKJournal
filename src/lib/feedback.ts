@@ -8,8 +8,11 @@ export type AuthFeedbackCode =
   | "signed-in"
   | "account-created"
   | "invalid-credentials"
+  | "invalid-auth-request"
   | "invalid-sign-up-input"
   | "email-taken"
+  | "rate-limit-exceeded"
+  | "request-too-large"
   | "unsupported-media-type"
   | "forbidden-origin"
   | "already-authenticated"
@@ -45,9 +48,12 @@ export type SubmissionFeedbackCode =
   | "draft-submit-failed"
   | "status-update-failed"
   | "invalid-status"
+  | "invalid-public-id"
   | "invalid-manuscript-file"
   | "invalid-source-file"
   | "upload-too-large"
+  | "request-too-large"
+  | "rate-limit-exceeded"
   | "storage-misconfigured"
   | "upload-failed"
   | "download-failed"
@@ -64,7 +70,8 @@ export type SubmissionFeedbackCode =
   | "invalid-publication-input"
   | "publication-slug-taken"
   | "publication-update-failed"
-  | "review-closed";
+  | "review-closed"
+  | "export-failed";
 
 type VersionLabelCode =
   | "Draft Created"
@@ -79,8 +86,11 @@ const authFeedback: Localized<Record<AuthFeedbackCode, string>> = {
     "signed-in": "Signed in successfully.",
     "account-created": "Account created successfully.",
     "invalid-credentials": "Email or password is incorrect.",
+    "invalid-auth-request": "The sign-in request could not be validated.",
     "invalid-sign-up-input": "Please provide a valid name, email and password.",
     "email-taken": "An account with this email already exists.",
+    "rate-limit-exceeded": "Too many attempts were made. Please wait and try again.",
+    "request-too-large": "The submitted payload is too large for this endpoint.",
     "unsupported-media-type": "The request format is not supported.",
     "forbidden-origin": "This request origin is not allowed.",
     "already-authenticated": "You are already signed in.",
@@ -93,8 +103,11 @@ const authFeedback: Localized<Record<AuthFeedbackCode, string>> = {
     "signed-in": "登录成功。",
     "account-created": "账户创建成功。",
     "invalid-credentials": "邮箱或密码不正确。",
+    "invalid-auth-request": "登录请求未通过校验。",
     "invalid-sign-up-input": "请输入有效的姓名、邮箱和密码。",
     "email-taken": "这个邮箱已经注册过账户。",
+    "rate-limit-exceeded": "尝试次数过多，请稍后再试。",
+    "request-too-large": "提交内容过大，当前接口无法处理。",
     "unsupported-media-type": "当前请求格式不被支持。",
     "forbidden-origin": "当前请求来源不被允许。",
     "already-authenticated": "你已经登录。",
@@ -181,9 +194,13 @@ const submissionFeedback: Localized<{
       "draft-submit-failed": "Unable to submit the manuscript.",
       "status-update-failed": "Unable to update submission status.",
       "invalid-status": "Select a valid next status.",
+      "invalid-public-id": "The submission identifier format is invalid.",
       "invalid-manuscript-file": "Upload a PDF file for the manuscript.",
       "invalid-source-file": "Upload a ZIP archive for the source package.",
       "upload-too-large": "The selected file exceeds the allowed size limit.",
+      "request-too-large": "The request payload exceeds the accepted limit.",
+      "rate-limit-exceeded":
+        "Too many requests were made from this session. Please wait and try again.",
       "storage-misconfigured":
         "File storage is not configured for this environment yet.",
       "upload-failed": "Unable to upload the file right now.",
@@ -210,6 +227,7 @@ const submissionFeedback: Localized<{
       "publication-update-failed": "Unable to update publication settings.",
       "review-closed":
         "Reviews can be submitted only while the manuscript is under review.",
+      "export-failed": "Unable to export the publication draft right now.",
     },
     timelineEmpty:
       "No status events have been recorded yet. The submission remains in its current state.",
@@ -254,9 +272,12 @@ const submissionFeedback: Localized<{
       "draft-submit-failed": "暂时无法提交稿件。",
       "status-update-failed": "暂时无法更新稿件状态。",
       "invalid-status": "请选择有效的下一状态。",
+      "invalid-public-id": "稿件编号格式无效。",
       "invalid-manuscript-file": "稿件文件请上传 PDF。",
       "invalid-source-file": "源文件包请上传 ZIP 压缩包。",
       "upload-too-large": "所选文件超过了允许的大小限制。",
+      "request-too-large": "当前请求内容超过了允许大小限制。",
+      "rate-limit-exceeded": "当前会话请求过多，请稍后再试。",
       "storage-misconfigured": "当前环境尚未完成文件存储配置。",
       "upload-failed": "暂时无法上传文件。",
       "download-failed": "暂时无法下载该文件。",
@@ -274,6 +295,7 @@ const submissionFeedback: Localized<{
       "publication-slug-taken": "这个出版 slug 已被使用，请更换一个。",
       "publication-update-failed": "暂时无法更新出版准备设置。",
       "review-closed": "只有在稿件处于审稿中时才能提交审稿意见。",
+      "export-failed": "暂时无法导出出版草稿。",
     },
     timelineEmpty: "当前还没有状态事件记录，稿件会保持在现有状态。",
     timelineEmptyDraft: "当前还没有状态事件记录，稿件仍处于草稿阶段。",
@@ -311,6 +333,10 @@ function dedupeMessages(messages: string[]) {
 export function getAuthFeedback(locale: Locale, code: string | undefined) {
   if (!code) {
     return null;
+  }
+
+  if (code === "CredentialsSignin") {
+    return authFeedback[locale]["invalid-credentials"];
   }
 
   return authFeedback[locale][code as AuthFeedbackCode] ?? code;

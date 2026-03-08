@@ -73,6 +73,17 @@ export const publicationSettingsSchema = z
         message: "publishedAt requires isPublicationReady",
       });
     }
+
+    if (
+      value.publishedAt &&
+      Number.isNaN(new Date(value.publishedAt).getTime())
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["publishedAt"],
+        message: "publishedAt must be a valid datetime string",
+      });
+    }
   });
 
 export type PublicationSettingsInput = z.infer<typeof publicationSettingsSchema>;
