@@ -132,3 +132,45 @@
     @apply no-underline;
   }
 }
+
+@media print {
+  @page {
+    size: A4;
+    margin: 16mm 16mm 18mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #171312 !important;
+  }
+
+  body {
+    background-image: none !important;
+  }
+
+  .page-shell > header,
+  .page-shell > footer,
+  [data-publication-proof-toolbar] {
+    display: none !important;
+  }
+
+  .publication-proof-page {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  .publication-proof-sheet {
+    max-width: none !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    padding: 0 !important;
+  }
+
+  .publication-proof-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

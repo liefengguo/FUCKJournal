@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import type { Locale } from "@/i18n/routing";
 import { getSubmissionError } from "@/lib/feedback";
+import { getLocalizedHref } from "@/lib/site";
 import { getSubmissionUiCopy } from "@/lib/submission-ui-copy";
 import { Button } from "@/components/ui/button";
 
@@ -55,6 +56,11 @@ export function PublicationExportPanel({
   publicId,
 }: PublicationExportPanelProps) {
   const copy = getSubmissionUiCopy(locale).publication;
+  const previewHref = getLocalizedHref(
+    locale,
+    `/editor/publications/${publicId}/preview`,
+  );
+  const printHref = `${previewHref}?print=1`;
   const [activeFormat, setActiveFormat] = useState<ExportFormat | null>(null);
   const [messages, setMessages] = useState<
     Record<ExportFormat, ExportMessage | null>
@@ -124,6 +130,38 @@ export function PublicationExportPanel({
 
   return (
     <div className="space-y-4">
+      <div className="rounded-[24px] border border-border/60 px-5 py-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-2">
+            <p className="font-serif text-lg">{copy.previewLabel}</p>
+            <p className="font-serif text-base text-muted-foreground">
+              {copy.previewHint}
+            </p>
+          </div>
+          <Button asChild size="sm">
+            <a href={previewHref} target="_blank" rel="noreferrer">
+              {copy.previewLabel}
+            </a>
+          </Button>
+        </div>
+      </div>
+
+      <div className="rounded-[24px] border border-border/60 px-5 py-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-2">
+            <p className="font-serif text-lg">{copy.printPdfLabel}</p>
+            <p className="font-serif text-base text-muted-foreground">
+              {copy.printPdfHint}
+            </p>
+          </div>
+          <Button asChild variant="outline" size="sm">
+            <a href={printHref} target="_blank" rel="noreferrer">
+              {copy.printPdfLabel}
+            </a>
+          </Button>
+        </div>
+      </div>
+
       <div className="rounded-[24px] border border-border/60 px-5 py-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">

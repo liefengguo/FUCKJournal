@@ -127,6 +127,18 @@ type Phase2Copy = {
     exportMarkdownHint: string;
     exportJsonLabel: string;
     exportJsonHint: string;
+    previewLabel: string;
+    previewHint: string;
+    printPdfLabel: string;
+    printPdfHint: string;
+    proofTitle: string;
+    proofBody: string;
+    proofReturnLabel: string;
+    proofPrintLabel: string;
+    proofKicker: string;
+    proofMetaLabel: string;
+    proofPreparedLabel: string;
+    proofUpdatedLabel: string;
     reviewWorkspaceLinkLabel: string;
     publicationWorkspaceHint: string;
   };
@@ -345,6 +357,21 @@ const copy: Localized<Phase2Copy> = {
       exportJsonLabel: "Export structured JSON",
       exportJsonHint:
         "Exports metadata, structured manuscript content and file metadata as JSON.",
+      previewLabel: "Open proof preview",
+      previewHint:
+        "Open an editorial proof page styled like a journal first-publication layout.",
+      printPdfLabel: "Print / save PDF",
+      printPdfHint:
+        "Open the proof preview and trigger the browser print dialog for PDF export.",
+      proofTitle: "Publication proof preview",
+      proofBody:
+        "Use this internal proof page to review the accepted manuscript in a publication-style layout before exporting a PDF or moving it into the MDX article pipeline.",
+      proofReturnLabel: "Return to publication workspace",
+      proofPrintLabel: "Print / save PDF",
+      proofKicker: "Accepted manuscript proof",
+      proofMetaLabel: "Publication metadata",
+      proofPreparedLabel: "Prepared from accepted submission",
+      proofUpdatedLabel: "Latest editorial update",
       reviewWorkspaceLinkLabel: "Return to review detail",
       publicationWorkspaceHint:
         "Accepted manuscripts remain locked for authors. Publication preparation happens here, on the editorial side only.",
@@ -559,6 +586,19 @@ const copy: Localized<Phase2Copy> = {
       exportMarkdownHint: "从已接收稿件生成 frontmatter + markdown 草稿。",
       exportJsonLabel: "导出结构化 JSON",
       exportJsonHint: "导出元数据、结构化正文和文件元数据。",
+      previewLabel: "打开首发 proof 预览",
+      previewHint: "以更接近期刊首发版式的内部 proof 页面查看已接收稿件。",
+      printPdfLabel: "打印 / 导出 PDF",
+      printPdfHint: "打开 proof 预览，并直接唤起浏览器打印对话框导出 PDF。",
+      proofTitle: "出版 proof 预览",
+      proofBody:
+        "这个内部 proof 页面用于在导出 PDF 或进入 MDX 发布流程前，以更接近期刊首发的版式检查已接收稿件。",
+      proofReturnLabel: "返回出版工作区",
+      proofPrintLabel: "打印 / 导出 PDF",
+      proofKicker: "已接收稿件 proof",
+      proofMetaLabel: "出版元数据",
+      proofPreparedLabel: "生成自已接收稿件",
+      proofUpdatedLabel: "最近一次编辑更新",
       reviewWorkspaceLinkLabel: "返回审稿详情",
       publicationWorkspaceHint:
         "已接收稿件在作者侧保持锁定。出版准备只在编辑内部工作区进行。",
