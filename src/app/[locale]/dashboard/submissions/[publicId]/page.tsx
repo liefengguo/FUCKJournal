@@ -7,17 +7,18 @@ import { SignOutButton } from "@/components/auth/sign-out-button";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { FlashMessage } from "@/components/dashboard/flash-message";
 import { LocaleLink } from "@/components/locale-link";
+import { ManuscriptDocumentView } from "@/components/submissions/manuscript-document-view";
+import { SubmissionMetadataSummary } from "@/components/submissions/submission-metadata-summary";
 import { SubmissionFilePanel } from "@/components/submissions/submission-file-panel";
 import { SubmissionStatusBadge } from "@/components/submissions/submission-status-badge";
-import { SubmissionStructuredContent } from "@/components/submissions/submission-structured-content";
 import { SubmissionTimeline } from "@/components/submissions/submission-timeline";
-import { SubmissionVersionList } from "@/components/submissions/submission-version-list";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Locale } from "@/i18n/routing";
 import { getSubmissionError, getSubmissionNotice } from "@/lib/feedback";
+import { loadStoredManuscriptPreview } from "@/lib/manuscript-preview";
 import { getPlatformCopy } from "@/lib/platform-copy";
-import { canAuthorEditStatus } from "@/lib/submission-status";
+import { canAuthorEditStatus, getSubmissionStatusLabel } from "@/lib/submission-status";
 import { getSubmissionUiCopy } from "@/lib/submission-ui-copy";
 import { getAuthorSubmissionDetail } from "@/lib/submissions";
 import { formatDate } from "@/lib/site";
@@ -77,7 +78,14 @@ export default async function SubmissionDetailPage({
   const canEdit = canAuthorEditStatus(submission.status);
   const notice = getSubmissionNotice(locale, searchParams?.notice);
   const errorMessage = getSubmissionError(locale, searchParams?.error);
-  const latestVersion = submission.versions[0]?.versionNumber ?? 1;
+  const manuscriptPreview = await loadStoredManuscriptPreview({
+    fileName: submission.manuscriptFileName,
+    mimeType: submission.manuscriptMimeType,
+    storageKey: submission.manuscriptStorageKey,
+    storageProvider: submission.manuscriptStorageProvider,
+    inlineUrl: `/api/submissions/${publicId}/assets/manuscript?inline=1`,
+    downloadUrl: `/api/submissions/${publicId}/assets/manuscript`,
+  });
 
   return (
     <DashboardShell
@@ -126,7 +134,9 @@ export default async function SubmissionDetailPage({
               <SubmissionStatusBadge locale={locale} status={submission.status} />
             </div>
             <p className="font-serif text-lg leading-relaxed text-muted-foreground">
-              {uiCopy.fields.structureBody}
+              {locale === "zh"
+                ? "这是一条正式投稿记录。作者端保留元数据、附信、状态历史与稿件 PDF 预览，不再把论文正文拆成站内长文表单。"
+                : "This page tracks a formal journal submission record. The author view keeps metadata, cover letter, status history, and the manuscript PDF preview without duplicating the paper as platform-native long-form text."}
             </p>
           </CardHeader>
           <CardContent className="space-y-8">
@@ -153,30 +163,60 @@ export default async function SubmissionDetailPage({
               </div>
               <div>
                 <p className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                  {copy.submission.latestVersionLabel}
+                  {copy.submission.fileNameLabel}
                 </p>
-                <p className="mt-2 font-serif text-lg">v{latestVersion}</p>
+                <p className="mt-2 font-serif text-lg">
+                  {submission.manuscriptFileName ||
+                    (locale === "zh" ? "尚未上传" : "No file yet")}
+                </p>
               </div>
             </div>
 
-            <SubmissionStructuredContent
+            <SubmissionMetadataSummary
               locale={locale}
-              title={submission.title}
-              byline={user.name || user.email}
-              manuscriptId={submission.publicId}
-              language={submission.manuscriptLanguage}
               abstract={submission.abstract}
               keywords={submission.keywords}
               coverLetter={submission.coverLetter}
-              introduction={submission.introduction}
-              mainContent={submission.mainContent}
-              conclusion={submission.conclusion}
-              references={submission.references}
+              details={[
+                {
+                  label: locale === "zh" ? "作者" : "Author",
+                  value: user.name || user.email,
+                },
+                {
+                  label: copy.submission.languageLabel,
+                  value: submission.manuscriptLanguage,
+                },
+                {
+                  label: copy.submission.fileNameLabel,
+                  value: submission.manuscriptFileName,
+                },
+                {
+                  label: copy.submission.statusLabel,
+                  value: getSubmissionStatusLabel(submission.status, locale),
+                },
+              ]}
             />
           </CardContent>
         </Card>
 
         <div className="space-y-6">
+          {manuscriptPreview ? (
+            <Card>
+              <CardHeader className="space-y-4">
+                <CardTitle>
+                  {locale === "zh" ? "稿件 PDF 预览" : "Manuscript PDF preview"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ManuscriptDocumentView
+                  locale={locale}
+                  preview={manuscriptPreview}
+                  showDownloadLink={false}
+                />
+              </CardContent>
+            </Card>
+          ) : null}
+
           <Card>
             <CardHeader className="space-y-4">
               <CardTitle>{copy.submission.draftGateTitle}</CardTitle>
@@ -224,27 +264,8 @@ export default async function SubmissionDetailPage({
                     sizeBytes: submission.manuscriptSizeBytes,
                     href: `/api/submissions/${publicId}/assets/manuscript`,
                   },
-                  {
-                    kind: "source",
-                    fileName: submission.sourceArchiveFileName,
-                    mimeType: submission.sourceArchiveMimeType,
-                    sizeBytes: submission.sourceArchiveSizeBytes,
-                    href: `/api/submissions/${publicId}/assets/source`,
-                  },
                 ]}
               />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="space-y-4">
-              <CardTitle>{uiCopy.versions.sectionTitle}</CardTitle>
-              <p className="font-serif text-lg leading-relaxed text-muted-foreground">
-                {uiCopy.versions.sectionBody}
-              </p>
-            </CardHeader>
-            <CardContent>
-              <SubmissionVersionList locale={locale} versions={submission.versions} />
             </CardContent>
           </Card>
 

@@ -3,6 +3,7 @@ import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 
 import { del, put } from "@vercel/blob";
 
+import { isAcceptedManuscriptUpload } from "@/lib/manuscript-files";
 import type { UploadKind } from "@/lib/validations/submission";
 
 export type StorageProvider = "local" | "vercel-blob";
@@ -41,50 +42,26 @@ function getLocalStorageRoot() {
   return path.resolve(process.cwd(), process.env.LOCAL_STORAGE_DIR ?? ".uploads");
 }
 
-function getUploadLimit(kind: UploadKind) {
-  const raw =
-    kind === "manuscript"
-      ? process.env.MAX_MANUSCRIPT_PDF_BYTES
-      : process.env.MAX_SOURCE_ARCHIVE_BYTES;
+function getUploadLimit() {
+  const raw = process.env.MAX_MANUSCRIPT_PDF_BYTES;
 
   if (!raw) {
-    return kind === "manuscript" ? 25 * 1024 * 1024 : 50 * 1024 * 1024;
+    return 25 * 1024 * 1024;
   }
 
   const parsed = Number(raw);
-  return Number.isFinite(parsed) && parsed > 0
-    ? parsed
-    : kind === "manuscript"
-      ? 25 * 1024 * 1024
-      : 50 * 1024 * 1024;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 25 * 1024 * 1024;
 }
 
 function validateFileKind(kind: UploadKind, file: File) {
   const lowerName = file.name.toLowerCase();
 
-  if (file.size > getUploadLimit(kind)) {
+  if (file.size > getUploadLimit()) {
     throw new StorageError("upload-too-large");
   }
 
-  if (kind === "manuscript") {
-    const isPdf =
-      file.type === "application/pdf" || lowerName.endsWith(".pdf");
-
-    if (!isPdf) {
-      throw new StorageError("invalid-manuscript-file");
-    }
-
-    return;
-  }
-
-  const isZip =
-    file.type === "application/zip" ||
-    file.type === "application/x-zip-compressed" ||
-    file.type === "application/octet-stream" ||
-    lowerName.endsWith(".zip");
-
-  if (!isZip) {
-    throw new StorageError("invalid-source-file");
+  if (!isAcceptedManuscriptUpload(lowerName, file.type)) {
+    throw new StorageError("invalid-manuscript-file");
   }
 }
 

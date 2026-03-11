@@ -61,11 +61,7 @@ export async function POST(request: Request, { params }: RouteContext) {
   }
 
   const uploadRequestLimit =
-    Math.max(
-      getEnvNumber("MAX_MANUSCRIPT_PDF_BYTES", 25 * 1024 * 1024),
-      getEnvNumber("MAX_SOURCE_ARCHIVE_BYTES", 50 * 1024 * 1024),
-    ) +
-    1024 * 1024;
+    getEnvNumber("MAX_MANUSCRIPT_PDF_BYTES", 25 * 1024 * 1024) + 1024 * 1024;
 
   if (isRequestTooLarge(request, uploadRequestLimit)) {
     logOperationalWarning("submission.upload.request_too_large", {
@@ -135,10 +131,7 @@ export async function POST(request: Request, { params }: RouteContext) {
     }
 
     const uploadKind = kind as (typeof uploadKinds)[number];
-    const maxBytes =
-      uploadKind === "manuscript"
-        ? getEnvNumber("MAX_MANUSCRIPT_PDF_BYTES", 25 * 1024 * 1024)
-        : getEnvNumber("MAX_SOURCE_ARCHIVE_BYTES", 50 * 1024 * 1024);
+    const maxBytes = getEnvNumber("MAX_MANUSCRIPT_PDF_BYTES", 25 * 1024 * 1024);
 
     if (file.size > maxBytes) {
       logOperationalWarning("submission.upload.file_too_large", {
@@ -171,9 +164,6 @@ export async function POST(request: Request, { params }: RouteContext) {
           manuscriptFileName: submission.manuscriptFileName,
           manuscriptMimeType: submission.manuscriptMimeType,
           manuscriptSizeBytes: submission.manuscriptSizeBytes,
-          sourceArchiveFileName: submission.sourceArchiveFileName,
-          sourceArchiveMimeType: submission.sourceArchiveMimeType,
-          sourceArchiveSizeBytes: submission.sourceArchiveSizeBytes,
         },
       },
       { status: 200, headers: rateLimitHeaders },

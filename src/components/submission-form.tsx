@@ -18,7 +18,7 @@ export async function SubmissionForm({ locale }: SubmissionFormProps) {
   const isStaff = session?.user ? isStaffRole(session.user.role) : false;
 
   return (
-    <Card>
+    <Card data-testid="submission-portal-card">
       <CardHeader className="space-y-4">
         <CardTitle>{session?.user ? copy.memberTitle : copy.guestTitle}</CardTitle>
         <p className="font-serif text-lg leading-relaxed text-muted-foreground">
@@ -38,14 +38,19 @@ export async function SubmissionForm({ locale }: SubmissionFormProps) {
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
               {!isStaff ? (
-                <form action={createDraftAction} className="w-full sm:w-auto">
+                <form
+                  action={createDraftAction}
+                  className="w-full sm:w-auto"
+                  data-testid="submission-portal-start-form"
+                >
                   <input type="hidden" name="locale" value={locale} />
                   <FormSubmitButton
                     type="submit"
                     size="lg"
                     className="w-full sm:w-auto"
                     idleLabel={copy.createDraftLabel}
-                    pendingLabel={locale === "zh" ? "创建中..." : "Creating draft..."}
+                    pendingLabel={locale === "zh" ? "创建投稿记录..." : "Opening submission..."}
+                    data-testid="submission-portal-start-button"
                   />
                 </form>
               ) : null}

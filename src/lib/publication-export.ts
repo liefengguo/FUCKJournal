@@ -17,6 +17,8 @@ export type PublicationExportSource = {
   references: string | null;
   manuscriptLanguage: string | null;
   manuscriptFileName: string | null;
+  manuscriptStorageKey: string | null;
+  manuscriptStorageProvider: string | null;
   manuscriptMimeType: string | null;
   manuscriptSizeBytes: number | null;
   sourceArchiveFileName: string | null;
@@ -80,7 +82,7 @@ function buildMarkdownBody(source: PublicationExportSource) {
   return source.mainContent?.trim() || source.abstract?.trim() || "";
 }
 
-export function buildMarkdownDraft(source: PublicationExportSource) {
+export function buildPublicationMarkdownRecord(source: PublicationExportSource) {
   const frontmatter = {
     title: getPublicationTitle(source),
     author: source.author.name || source.author.email,
@@ -104,7 +106,7 @@ export function buildMarkdownDraft(source: PublicationExportSource) {
 
 export function buildPublicationJson(source: PublicationExportSource) {
   return {
-    exportType: "fuck-journal-publication-draft",
+    exportType: "fuck-journal-publication-record",
     exportedAt: new Date().toISOString(),
     submission: {
       publicId: source.publicId,
@@ -145,13 +147,6 @@ export function buildPublicationJson(source: PublicationExportSource) {
             fileName: source.manuscriptFileName,
             mimeType: source.manuscriptMimeType,
             sizeBytes: source.manuscriptSizeBytes,
-          }
-        : null,
-      sourceArchive: source.sourceArchiveFileName
-        ? {
-            fileName: source.sourceArchiveFileName,
-            mimeType: source.sourceArchiveMimeType,
-            sizeBytes: source.sourceArchiveSizeBytes,
           }
         : null,
     },

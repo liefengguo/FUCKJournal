@@ -135,18 +135,30 @@ export function SignUpForm({ locale, callbackUrl }: SignUpFormProps) {
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
-        <form action={handleSubmit} className="space-y-5">
+        <form action={handleSubmit} className="space-y-5" data-testid="sign-up-form">
           <div className="space-y-2">
             <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
               {copy.nameLabel}
             </label>
-            <Input name="name" autoComplete="name" minLength={2} required />
+            <Input
+              name="name"
+              autoComplete="name"
+              minLength={2}
+              required
+              data-testid="sign-up-name"
+            />
           </div>
           <div className="space-y-2">
             <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
               {copy.emailLabel}
             </label>
-            <Input name="email" type="email" autoComplete="email" required />
+            <Input
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              data-testid="sign-up-email"
+            />
           </div>
           <div className="space-y-2">
             <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
@@ -158,6 +170,7 @@ export function SignUpForm({ locale, callbackUrl }: SignUpFormProps) {
               autoComplete="new-password"
               minLength={8}
               required
+              data-testid="sign-up-password"
             />
           </div>
           {messages.length ? (
@@ -172,7 +185,13 @@ export function SignUpForm({ locale, callbackUrl }: SignUpFormProps) {
               ))}
             </div>
           ) : null}
-          <Button type="submit" size="lg" className="w-full" disabled={isPending}>
+          <Button
+            type="submit"
+            size="lg"
+            className="w-full"
+            disabled={isPending}
+            data-testid="sign-up-submit"
+          >
             {isPending ? copy.submittingLabel : copy.submitLabel}
           </Button>
         </form>

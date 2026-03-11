@@ -99,7 +99,7 @@ export default function OpenGraphImage() {
             color: "#5f5550",
           }}
         >
-          A journal of ideas on systems, culture, and the human condition.
+          Better suited to the future we want to read and publish in.
         </div>
       </div>
     ),

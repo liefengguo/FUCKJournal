@@ -168,28 +168,8 @@ export async function saveDraftAction(formData: FormData) {
       abstract: getOptionalString(formData, "abstract"),
       keywords: getKeywords(formData),
       coverLetter: getOptionalString(formData, "coverLetter"),
-      introduction: getOptionalString(formData, "introduction"),
-      mainContent: getOptionalString(formData, "mainContent"),
-      conclusion: getOptionalString(formData, "conclusion"),
-      references: getOptionalString(formData, "references"),
       manuscriptLanguage,
-      manuscriptFileName: getOptionalString(formData, "manuscriptFileName"),
-      manuscriptStorageProvider: getOptionalString(formData, "manuscriptStorageProvider"),
-      manuscriptMimeType: getOptionalString(formData, "manuscriptMimeType"),
       manuscriptSizeBytes,
-      sourceArchiveFileName: getOptionalString(formData, "sourceArchiveFileName"),
-      sourceArchiveStorageProvider: getOptionalString(
-        formData,
-        "sourceArchiveStorageProvider",
-      ),
-      sourceArchiveMimeType: getOptionalString(formData, "sourceArchiveMimeType"),
-      sourceArchiveSizeBytes:
-        (() => {
-          const sourceSizeValue = getOptionalString(formData, "sourceArchiveSizeBytes");
-          return sourceSizeValue && /^\d+$/.test(sourceSizeValue)
-            ? Number(sourceSizeValue)
-            : null;
-        })(),
     });
 
     revalidatePath(`/${locale}/dashboard`);

@@ -7,7 +7,7 @@ import {
   logOperationalFailure,
   logOperationalWarning,
 } from "@/lib/observability";
-import { buildMarkdownDraft } from "@/lib/publication-export";
+import { buildPublicationMarkdownRecord } from "@/lib/publication-export";
 import { isStaffRole } from "@/lib/submission-status";
 import { getPublicationExportSource } from "@/lib/submissions";
 import { publicIdSchema } from "@/lib/validations/submission";
@@ -51,8 +51,8 @@ export async function GET(request: Request, { params }: RouteContext) {
       return jsonNoStore({ errorCode: "submission-not-found" }, { status: 404 });
     }
 
-    const markdown = buildMarkdownDraft(submission);
-    const fileName = `${submission.publicationSlug ?? submission.publicId.toLowerCase()}-draft.md`;
+    const markdown = buildPublicationMarkdownRecord(submission);
+    const fileName = `${submission.publicationSlug ?? submission.publicId.toLowerCase()}-record.md`;
 
     return new Response(markdown, {
       status: 200,

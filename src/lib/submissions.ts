@@ -223,6 +223,8 @@ const publicationExportSelect = {
   references: true,
   manuscriptLanguage: true,
   manuscriptFileName: true,
+  manuscriptStorageKey: true,
+  manuscriptStorageProvider: true,
   manuscriptMimeType: true,
   manuscriptSizeBytes: true,
   sourceArchiveFileName: true,
@@ -241,6 +243,30 @@ const publicationExportSelect = {
   publishedAt: true,
   submittedAt: true,
   createdAt: true,
+  updatedAt: true,
+  author: {
+    select: {
+      name: true,
+      email: true,
+    },
+  },
+} satisfies Prisma.SubmissionSelect;
+
+const publishedSubmissionListSelect = {
+  publicId: true,
+  title: true,
+  abstract: true,
+  keywords: true,
+  manuscriptLanguage: true,
+  publicationSlug: true,
+  publicationTitle: true,
+  publicationExcerpt: true,
+  publicationTags: true,
+  publicationLocale: true,
+  publicationVolume: true,
+  publicationIssue: true,
+  publicationYear: true,
+  publishedAt: true,
   updatedAt: true,
   author: {
     select: {
@@ -276,6 +302,10 @@ export type PublicationQueueItem = Prisma.SubmissionGetPayload<{
 
 export type PublicationExportItem = Prisma.SubmissionGetPayload<{
   select: typeof publicationExportSelect;
+}>;
+
+export type PublishedSubmissionListItem = Prisma.SubmissionGetPayload<{
+  select: typeof publishedSubmissionListSelect;
 }>;
 
 export type EditorialIssueGroup = {
@@ -951,7 +981,6 @@ function buildPublicationQueueWhere(filters?: {
 }
 
 function getAssetFieldPatch(
-  kind: UploadKind,
   asset: {
     fileName: string;
     storageKey: string;
@@ -960,39 +989,21 @@ function getAssetFieldPatch(
     sizeBytes: number;
   },
 ) {
-  if (kind === "manuscript") {
-    return {
-      manuscriptFileName: asset.fileName,
-      manuscriptStorageKey: asset.storageKey,
-      manuscriptStorageProvider: asset.storageProvider,
-      manuscriptMimeType: asset.mimeType,
-      manuscriptSizeBytes: asset.sizeBytes,
-    };
-  }
-
   return {
-    sourceArchiveFileName: asset.fileName,
-    sourceArchiveStorageKey: asset.storageKey,
-    sourceArchiveStorageProvider: asset.storageProvider,
-    sourceArchiveMimeType: asset.mimeType,
-    sourceArchiveSizeBytes: asset.sizeBytes,
+    manuscriptFileName: asset.fileName,
+    manuscriptStorageKey: asset.storageKey,
+    manuscriptStorageProvider: asset.storageProvider,
+    manuscriptMimeType: asset.mimeType,
+    manuscriptSizeBytes: asset.sizeBytes,
   };
 }
 
 function getExistingAssetFields(
   submission: SubmissionSnapshotSource,
-  kind: UploadKind,
 ) {
-  if (kind === "manuscript") {
-    return {
-      storageKey: submission.manuscriptStorageKey,
-      storageProvider: submission.manuscriptStorageProvider,
-    };
-  }
-
   return {
-    storageKey: submission.sourceArchiveStorageKey,
-    storageProvider: submission.sourceArchiveStorageProvider,
+    storageKey: submission.manuscriptStorageKey,
+    storageProvider: submission.manuscriptStorageProvider,
   };
 }
 
@@ -1319,6 +1330,69 @@ export async function getPublicationExportSource(
   });
 }
 
+export async function getPublishedSubmissionBySlug(
+  slug: string,
+  locale?: string | null,
+): Promise<PublicationExportSource | null> {
+  return db.submission.findFirst({
+    where: {
+      publicationSlug: slug,
+      status: "ACCEPTED",
+      isPublicationReady: true,
+      publishedAt: {
+        not: null,
+      },
+      ...(locale
+        ? {
+            OR: [
+              { publicationLocale: locale },
+              {
+                publicationLocale: null,
+                manuscriptLanguage: locale,
+              },
+              {
+                publicationLocale: null,
+                manuscriptLanguage: "bilingual",
+              },
+            ],
+          }
+        : {}),
+    },
+    select: publicationExportSelect,
+  });
+}
+
+export async function listPublishedSubmissionSummaries(
+  locale?: string | null,
+): Promise<PublishedSubmissionListItem[]> {
+  return db.submission.findMany({
+    where: {
+      status: "ACCEPTED",
+      isPublicationReady: true,
+      publishedAt: {
+        not: null,
+      },
+      ...(locale
+        ? {
+            OR: [
+              { publicationLocale: locale },
+              {
+                publicationLocale: null,
+                manuscriptLanguage: locale,
+              },
+              {
+                publicationLocale: null,
+                manuscriptLanguage: "bilingual",
+              },
+            ],
+          }
+        : {}),
+    },
+    select: publishedSubmissionListSelect,
+    orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
+  });
+}
+
 export async function listAvailableReviewers() {
   return db.user.findMany({
     where: {
@@ -1607,11 +1681,11 @@ export async function replaceSubmissionAsset(
         throw new SubmissionError(getEditableErrorCode(submission.status));
       }
 
-      previousFile = getExistingAssetFields(submission, kind);
+      previousFile = getExistingAssetFields(submission);
 
       const updated = await tx.submission.update({
         where: { id: submission.id },
-        data: getAssetFieldPatch(kind, {
+        data: getAssetFieldPatch({
           fileName: file.name,
           storageKey: uploadedFile!.storageKey,
           storageProvider: uploadedFile!.storageProvider,
@@ -1649,7 +1723,6 @@ export async function replaceSubmissionAsset(
 export async function getSubmissionAssetForViewer(
   viewer: Viewer,
   publicId: string,
-  kind: UploadKind,
 ) {
   const submission = await db.submission.findUnique({
     where: { publicId },
@@ -1677,28 +1750,15 @@ export async function getSubmissionAssetForViewer(
     throw new SubmissionError("submission-not-found");
   }
 
-  if (kind === "manuscript") {
-    if (!submission.manuscriptStorageKey) {
-      throw new SubmissionError("asset-not-found");
-    }
-
-    return {
-      fileName: submission.manuscriptFileName ?? "manuscript.pdf",
-      mimeType: submission.manuscriptMimeType ?? "application/pdf",
-      storageKey: submission.manuscriptStorageKey,
-      storageProvider: submission.manuscriptStorageProvider,
-    };
-  }
-
-  if (!submission.sourceArchiveStorageKey) {
+  if (!submission.manuscriptStorageKey) {
     throw new SubmissionError("asset-not-found");
   }
 
   return {
-    fileName: submission.sourceArchiveFileName ?? "source.zip",
-    mimeType: submission.sourceArchiveMimeType ?? "application/zip",
-    storageKey: submission.sourceArchiveStorageKey,
-    storageProvider: submission.sourceArchiveStorageProvider,
+    fileName: submission.manuscriptFileName ?? "manuscript.pdf",
+    mimeType: submission.manuscriptMimeType ?? "application/pdf",
+    storageKey: submission.manuscriptStorageKey,
+    storageProvider: submission.manuscriptStorageProvider,
   };
 }
 

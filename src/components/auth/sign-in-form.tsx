@@ -110,12 +110,18 @@ export function SignInForm({ locale, callbackUrl }: SignInFormProps) {
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
-        <form action={handleSubmit} className="space-y-5">
+        <form action={handleSubmit} className="space-y-5" data-testid="sign-in-form">
           <div className="space-y-2">
             <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
               {copy.emailLabel}
             </label>
-            <Input name="email" type="email" autoComplete="email" required />
+            <Input
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              data-testid="sign-in-email"
+            />
           </div>
           <div className="space-y-2">
             <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
@@ -127,6 +133,7 @@ export function SignInForm({ locale, callbackUrl }: SignInFormProps) {
               autoComplete="current-password"
               minLength={8}
               required
+              data-testid="sign-in-password"
             />
           </div>
           {messages.length ? (
@@ -141,7 +148,13 @@ export function SignInForm({ locale, callbackUrl }: SignInFormProps) {
               ))}
             </div>
           ) : null}
-          <Button type="submit" size="lg" className="w-full" disabled={isPending}>
+          <Button
+            type="submit"
+            size="lg"
+            className="w-full"
+            disabled={isPending}
+            data-testid="sign-in-submit"
+          >
             {isPending ? copy.submittingLabel : copy.submitLabel}
           </Button>
         </form>

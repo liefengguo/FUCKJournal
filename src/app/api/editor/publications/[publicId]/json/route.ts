@@ -52,7 +52,7 @@ export async function GET(request: Request, { params }: RouteContext) {
     }
 
     const payload = JSON.stringify(buildPublicationJson(submission), null, 2);
-    const fileName = `${submission.publicationSlug ?? submission.publicId.toLowerCase()}-draft.json`;
+    const fileName = `${submission.publicationSlug ?? submission.publicId.toLowerCase()}-record.json`;
 
     return new Response(payload, {
       status: 200,

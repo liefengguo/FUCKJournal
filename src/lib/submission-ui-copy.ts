@@ -38,14 +38,12 @@ type Phase2Copy = {
     sectionTitle: string;
     sectionBody: string;
     manuscriptLabel: string;
-    sourceLabel: string;
     uploadButton: string;
     uploadingButton: string;
     downloadButton: string;
     replaceHint: string;
     noFile: string;
     manuscriptHint: string;
-    sourceHint: string;
   };
   versions: {
     sectionTitle: string;
@@ -171,11 +169,11 @@ const copy: Localized<Phase2Copy> = {
   en: {
     submitTemplatesCtaLabel: "View submission templates",
     submitTemplatesCtaBody:
-      "Download the English or Chinese Word / LaTeX packages if you want the manuscript to already read like a formal journal paper before upload.",
+      "Download the English or Chinese Word / LaTeX packages, prepare the final layout there, and upload the manuscript as a PDF when it is ready.",
     templates: {
       title: "Submission Templates",
       intro:
-        "F.U.C.K Journal accepts structured online submissions and file-based manuscripts. This page outlines the editorial template, writing expectations and the minimum checklist before you submit.",
+        "F.U.C.K Journal runs a PDF-first submission workflow. This page outlines the journal template, manuscript expectations, and the minimum checklist before a paper enters editorial screening.",
       structureTitle: "Journal submission structure",
       structureItems: [
         "Title",
@@ -191,40 +189,40 @@ const copy: Localized<Phase2Copy> = {
       guidelines: [
         "Lead with a clear argument and maintain an editorially readable structure.",
         "Keep abstract and keywords precise enough for indexing and review.",
-        "Use the online structured editor for text-driven submissions whenever possible.",
-        "Use file upload for final PDF layout, source archives and supporting package delivery.",
+        "Prepare the manuscript in Word or LaTeX if needed, but submit a review-ready PDF.",
+        "Use the private workspace for metadata, cover letter, review status, and manuscript delivery.",
       ],
       checklistTitle: "Submission checklist",
       checklist: [
-        "The title, abstract, keywords and main content are complete.",
-        "The manuscript PDF reflects the current argument and structure.",
-        "References and citations are internally consistent.",
-        "Any source archive is clearly named and ready for editorial download.",
+        "The title, abstract, keywords and manuscript language are complete.",
+        "The manuscript PDF reflects the exact version that should be reviewed.",
+        "The cover letter clarifies scope, fit, or any special context for the editors.",
+        "If you plan to preserve source files, keep them for later production on the editorial side.",
       ],
       downloadsTitle: "Template placeholders",
       downloads: [
         {
-          title: "Structured manuscript outline",
-          body: "Use the online fields as your primary drafting template.",
+          title: "Word manuscript template",
+          body: "Use it to prepare the paper visually before exporting the final PDF.",
         },
         {
-          title: "PDF manuscript placeholder",
-          body: "Upload a final manuscript PDF once the argument and formatting stabilize.",
+          title: "PDF manuscript delivery",
+          body: "Upload the final review-ready PDF once the argument and formatting stabilize.",
         },
         {
-          title: "Source archive placeholder",
-          body: "Optional ZIP package for notes, figures or layout source files.",
+          title: "LaTeX production package",
+          body: "Keep source material ready for production, but do not rely on it for the initial submission.",
         },
       ],
       comparisonTitle: "Submission modes",
       comparisonCards: [
         {
-          title: "Online structured submission",
-          body: "Best for iterative drafting, revision requests and editorial review of argument structure.",
+          title: "Submission record",
+          body: "Best for metadata, cover letters, PDF delivery, and tracking decisions through screening and peer review.",
         },
         {
-          title: "File-based submission",
-          body: "Best for preserving final formatting, complex footnotes and source materials for production.",
+          title: "PDF-first manuscript",
+          body: "Best for preserving final formatting, equations, tables, figures, and the exact appearance reviewers should read.",
         },
       ],
       exampleTitle: "Example manuscript flow",
@@ -246,27 +244,25 @@ const copy: Localized<Phase2Copy> = {
       referencesLabel: "References",
       structureTitle: "Structured manuscript",
       structureBody:
-        "The online editor now follows the journal template directly so the submission can be reviewed as a structured manuscript, not only as flat metadata.",
+        "The submission workspace keeps only the metadata required for screening and review. The paper itself is carried by the uploaded manuscript PDF.",
       noContent: "No content has been added to this section yet.",
     },
     uploads: {
       sectionTitle: "Files",
       sectionBody:
-        "Upload the manuscript PDF and, if needed, a source ZIP package. Files can be replaced only while the submission remains editable.",
+        "Upload the manuscript as a PDF. Files can be replaced only while the submission remains editable.",
       manuscriptLabel: "Manuscript PDF",
-      sourceLabel: "Source ZIP",
       uploadButton: "Upload file",
       uploadingButton: "Uploading...",
       downloadButton: "Download",
       replaceHint: "Uploading a new file replaces the previous one for this slot.",
       noFile: "No file uploaded yet.",
       manuscriptHint: "Accepted format: PDF",
-      sourceHint: "Accepted format: ZIP archive",
     },
     versions: {
       sectionTitle: "Version history",
       sectionBody:
-        "Each draft save, submission and revision resubmission creates a durable snapshot.",
+        "Each save, submission and revision resubmission creates a durable snapshot of the submission record.",
       empty: "No versions have been recorded yet.",
       versionLabel: "Version label",
       statusContextLabel: "Status context",
@@ -315,7 +311,7 @@ const copy: Localized<Phase2Copy> = {
     publication: {
       queueTitle: "Publication queue",
       queueBody:
-        "Accepted submissions move through publication preparation here. Export tools prepare drafts for the existing MDX workflow without exposing them publicly.",
+        "Accepted submissions move through production and publication here. The public site reads directly from the published manuscript record.",
       queueEmpty:
         "No accepted submissions match the current publication filters.",
       stateFilterLabel: "Pipeline state",
@@ -325,7 +321,7 @@ const copy: Localized<Phase2Copy> = {
       openWorkspaceLabel: "Open publication workspace",
       workflowTitle: "Publication workflow",
       workflowBody:
-        "Editorial publication work remains internal. Metadata, export drafts and publication timestamps are managed here while the public site continues to use the existing MDX article system.",
+        "Editorial publication work remains internal. Metadata, issue placement, proofing, and publication timestamps are managed here while the public site reads the published manuscript file.",
       currentStateLabel: "Current pipeline state",
       metadataTitle: "Publication metadata",
       metadataBody:
@@ -336,7 +332,7 @@ const copy: Localized<Phase2Copy> = {
       publicationTagsHint: "Separate tags with commas.",
       publicationLocaleLabel: "Publication locale",
       publicationLocaleHint:
-        "Use the publication locale that will be carried into the exported article draft.",
+        "Use the locale that should be shown on the published article record.",
       publicationVolumeLabel: "Volume",
       publicationIssueLabel: "Issue",
       publicationYearLabel: "Year",
@@ -348,15 +344,15 @@ const copy: Localized<Phase2Copy> = {
       publishedAtLabel: "Published at",
       savePublicationLabel: "Save publication metadata",
       savingPublicationLabel: "Saving publication metadata...",
-      exportTitle: "Export drafts",
+      exportTitle: "Export records",
       exportBody:
-        "Export a markdown draft for the MDX publication workflow, or export the full structured record as JSON for internal handling.",
-      exportMarkdownLabel: "Export markdown draft",
+        "Export publication records for internal handoff, preservation, or downstream production work.",
+      exportMarkdownLabel: "Export markdown record",
       exportMarkdownHint:
-        "Creates a frontmatter + markdown draft from the accepted submission.",
+        "Creates a lightweight markdown handoff from the accepted submission metadata.",
       exportJsonLabel: "Export structured JSON",
       exportJsonHint:
-        "Exports metadata, structured manuscript content and file metadata as JSON.",
+        "Exports metadata, publication settings, and manuscript file metadata as JSON.",
       previewLabel: "Open proof preview",
       previewHint:
         "Open an editorial proof page styled like a journal first-publication layout.",
@@ -365,7 +361,7 @@ const copy: Localized<Phase2Copy> = {
         "Open the proof preview and trigger the browser print dialog for PDF export.",
       proofTitle: "Publication proof preview",
       proofBody:
-        "Use this internal proof page to review the accepted manuscript in a publication-style layout before exporting a PDF or moving it into the MDX article pipeline.",
+        "Use this internal proof page to review the accepted manuscript in a publication-style layout before release.",
       proofReturnLabel: "Return to publication workspace",
       proofPrintLabel: "Print / save PDF",
       proofKicker: "Accepted manuscript proof",
@@ -394,7 +390,7 @@ const copy: Localized<Phase2Copy> = {
       summaryOutstanding: "Outstanding",
       publicationTitle: "Publication foundation",
       publicationBody:
-        "Accepted submissions can be marked as publication-ready without changing the existing public MDX article system.",
+        "Accepted submissions can be moved into production and publication without rewriting the manuscript into a separate CMS article.",
       publicationReadyLabel: "Publication ready",
       publicationSlugLabel: "Publication slug",
       publishedAtLabel: "Published at",
@@ -406,11 +402,11 @@ const copy: Localized<Phase2Copy> = {
   zh: {
     submitTemplatesCtaLabel: "查看投稿模板",
     submitTemplatesCtaBody:
-      "如果你希望稿件在上传前就更像正式期刊论文，可以先下载中英文 Word / LaTeX 模板包。",
+      "如果你希望稿件在上传前就更像正式期刊论文，可以先下载中英文 Word / LaTeX 模板包完成排版，再导出 PDF 作为正式稿件上传。",
     templates: {
       title: "投稿模板",
       intro:
-        "F.U.C.K Journal 同时接受结构化在线投稿和文件式稿件。本页概述编辑模板、写作要求，以及正式投稿前的最小检查清单。",
+        "F.U.C.K Journal 现在采用 PDF-first 投稿流程。本页概述期刊模板、稿件要求，以及进入编辑初筛前的最小检查清单。",
       structureTitle: "期刊投稿结构",
       structureItems: [
         "标题",
@@ -426,40 +422,40 @@ const copy: Localized<Phase2Copy> = {
       guidelines: [
         "以清晰论点开篇，并保持可读的编辑结构。",
         "摘要与关键词应足够准确，便于索引与审阅。",
-        "只要适合文本驱动写作，优先使用在线结构化编辑器。",
-        "文件上传适合最终 PDF、源文件包以及需要交付的补充材料。",
+        "如需，可先在 Word 或 LaTeX 中完成排版，但正式投稿时请提交可送审的 PDF。",
+        "私有工作区只负责元数据、附信、审稿状态和稿件文件交付。",
       ],
       checklistTitle: "投稿检查清单",
       checklist: [
-        "标题、摘要、关键词和正文已经完成。",
-        "稿件 PDF 与当前论点和结构一致。",
-        "参考文献与引注内部一致。",
-        "如果上传源文件包，文件命名清晰，便于编辑下载。",
+        "标题、摘要、关键词和稿件语言已经完成。",
+        "上传的稿件 PDF 就是希望编辑和审稿人阅读的正式版本。",
+        "附信已经说明选题、适配性或其他需要编辑知晓的背景。",
+        "如果未来需要源文件，请在生产阶段再向编辑部提供。",
       ],
       downloadsTitle: "模板占位",
       downloads: [
         {
-          title: "结构化稿件提纲",
-          body: "可直接把在线字段当作你的基础模板。",
+          title: "Word 稿件模板",
+          body: "可先据此完成排版，再导出正式 PDF。",
         },
         {
-          title: "PDF 稿件占位",
-          body: "当论证和排版稳定后，再上传最终 PDF。",
+          title: "PDF 稿件交付",
+          body: "当论证和排版稳定后，再上传最终送审 PDF。",
         },
         {
-          title: "源文件压缩包占位",
-          body: "可选 ZIP 包，用于笔记、图表或排版源文件。",
+          title: "LaTeX 生产包",
+          body: "如需保留源材料，可在出版生产阶段再提供给编辑部。",
         },
       ],
       comparisonTitle: "投稿模式",
       comparisonCards: [
         {
-          title: "在线结构化投稿",
-          body: "更适合反复修改、回应返修，以及编辑对论证结构的持续审阅。",
+          title: "投稿记录",
+          body: "适合管理元数据、附信、PDF 交付以及初筛、外审、返修等流程状态。",
         },
         {
-          title: "文件式投稿",
-          body: "更适合保留最终排版、复杂脚注，以及需要交付的源材料。",
+          title: "PDF-first 稿件",
+          body: "适合保留最终排版、公式、图表与审稿人应该阅读的精确版式。",
         },
       ],
       exampleTitle: "示例稿件流程",
@@ -481,26 +477,24 @@ const copy: Localized<Phase2Copy> = {
       referencesLabel: "参考文献",
       structureTitle: "结构化稿件",
       structureBody:
-        "在线编辑器现在直接遵循期刊模板，因此投稿不再只是扁平元数据，而是一份可直接审阅的结构化稿件。",
+        "投稿工作区现在只保留送审所需元数据；论文正文以作者上传的稿件 PDF 为准。",
       noContent: "这一部分还没有内容。",
     },
     uploads: {
       sectionTitle: "文件",
       sectionBody:
-        "可以上传稿件 PDF，以及需要时上传源文件 ZIP 包。只有在稿件仍可编辑时才允许替换文件。",
+        "稿件正文现在只上传 PDF。只有在稿件仍可编辑时才允许替换文件。",
       manuscriptLabel: "稿件 PDF",
-      sourceLabel: "源文件 ZIP",
       uploadButton: "上传文件",
       uploadingButton: "上传中...",
       downloadButton: "下载",
       replaceHint: "再次上传会替换这一栏位中原有的文件。",
       noFile: "尚未上传文件。",
       manuscriptHint: "支持格式：PDF",
-      sourceHint: "支持格式：ZIP 压缩包",
     },
     versions: {
       sectionTitle: "版本记录",
-      sectionBody: "每次保存草稿、正式提交和返修再提交都会生成一个可追溯快照。",
+      sectionBody: "每次保存、正式提交和返修再提交都会生成一个可追溯的投稿记录快照。",
       empty: "当前还没有版本记录。",
       versionLabel: "版本标签",
       statusContextLabel: "状态上下文",
@@ -548,7 +542,7 @@ const copy: Localized<Phase2Copy> = {
     publication: {
       queueTitle: "出版队列",
       queueBody:
-        "已接收稿件会在这里进入出版准备。导出工具只生成内部草稿，不会自动公开到当前 MDX 站点。",
+        "已接收稿件会在这里进入生产与出版准备，公开站点会直接读取已发布稿件记录。",
       queueEmpty: "当前筛选条件下没有已接收稿件进入出版流程。",
       stateFilterLabel: "流程状态",
       localeFilterLabel: "出版语言",
@@ -557,7 +551,7 @@ const copy: Localized<Phase2Copy> = {
       openWorkspaceLabel: "打开出版工作区",
       workflowTitle: "出版工作流",
       workflowBody:
-        "出版处理仍然是内部编辑流程。这里管理元数据、导出草稿和发布时间，而公开站点继续沿用现有 MDX 文章系统。",
+        "出版处理仍然是内部编辑流程。这里管理元数据、期次编排、proof 检查和发布时间，而公开站点直接读取已发布稿件文件。",
       currentStateLabel: "当前流程状态",
       metadataTitle: "出版元数据",
       metadataBody:
@@ -567,7 +561,7 @@ const copy: Localized<Phase2Copy> = {
       publicationTagsLabel: "出版标签",
       publicationTagsHint: "多个标签请用逗号分隔。",
       publicationLocaleLabel: "出版语言",
-      publicationLocaleHint: "这里的语言会写入导出的文章草稿。",
+      publicationLocaleHint: "这里的语言会写入公开文章记录。",
       publicationVolumeLabel: "卷",
       publicationIssueLabel: "期",
       publicationYearLabel: "年份",
@@ -579,20 +573,20 @@ const copy: Localized<Phase2Copy> = {
       publishedAtLabel: "发布时间",
       savePublicationLabel: "保存出版元数据",
       savingPublicationLabel: "保存中...",
-      exportTitle: "导出草稿",
+      exportTitle: "导出记录",
       exportBody:
-        "可导出 markdown 草稿进入现有 MDX 发布流程，或导出完整 JSON 结构供内部处理。",
-      exportMarkdownLabel: "导出 markdown 草稿",
-      exportMarkdownHint: "从已接收稿件生成 frontmatter + markdown 草稿。",
+        "如有需要，可导出出版记录用于内部交接、归档或后续生产处理。",
+      exportMarkdownLabel: "导出 markdown 记录",
+      exportMarkdownHint: "从已接收稿件生成轻量 markdown 交接记录。",
       exportJsonLabel: "导出结构化 JSON",
-      exportJsonHint: "导出元数据、结构化正文和文件元数据。",
+      exportJsonHint: "导出元数据、出版设置与稿件文件元数据。",
       previewLabel: "打开首发 proof 预览",
       previewHint: "以更接近期刊首发版式的内部 proof 页面查看已接收稿件。",
       printPdfLabel: "打印 / 导出 PDF",
       printPdfHint: "打开 proof 预览，并直接唤起浏览器打印对话框导出 PDF。",
       proofTitle: "出版 proof 预览",
       proofBody:
-        "这个内部 proof 页面用于在导出 PDF 或进入 MDX 发布流程前，以更接近期刊首发的版式检查已接收稿件。",
+        "这个内部 proof 页面用于在正式发布前，以更接近期刊首发的版式检查已接收稿件。",
       proofReturnLabel: "返回出版工作区",
       proofPrintLabel: "打印 / 导出 PDF",
       proofKicker: "已接收稿件 proof",
@@ -621,7 +615,7 @@ const copy: Localized<Phase2Copy> = {
       summaryOutstanding: "待收",
       publicationTitle: "出版准备基础",
       publicationBody:
-        "对于已接收稿件，可以先标记为进入出版准备，而不改变当前公开 MDX 文章系统。",
+        "对于已接收稿件，可以直接推进到出版准备，而不必把论文重写成另一套 CMS 文章。",
       publicationReadyLabel: "可进入出版准备",
       publicationSlugLabel: "出版 slug",
       publishedAtLabel: "发布时间",

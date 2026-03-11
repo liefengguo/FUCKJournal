@@ -60,18 +60,18 @@ export function getEditorStatusTransitions(status: SubmissionStatus) {
 export function getSubmissionStatusLabel(status: SubmissionStatus, locale: Locale) {
   const labels: Record<Locale, Record<SubmissionStatus, string>> = {
     en: {
-      DRAFT: "Draft",
-      SUBMITTED: "Submitted",
+      DRAFT: "In preparation",
+      SUBMITTED: "Editorial screening",
       UNDER_REVIEW: "Under review",
       REVISION_REQUESTED: "Revision requested",
       ACCEPTED: "Accepted",
       REJECTED: "Rejected",
     },
     zh: {
-      DRAFT: "草稿",
-      SUBMITTED: "已提交",
-      UNDER_REVIEW: "审阅中",
-      REVISION_REQUESTED: "需修改",
+      DRAFT: "准备中",
+      SUBMITTED: "编辑初筛",
+      UNDER_REVIEW: "外审中",
+      REVISION_REQUESTED: "等待返修",
       ACCEPTED: "已接收",
       REJECTED: "已拒稿",
     },

@@ -156,8 +156,8 @@ const submissionFeedback: Localized<{
 }> = {
   en: {
     notices: {
-      created: "Draft created.",
-      saved: "Draft saved.",
+      created: "Submission record created.",
+      saved: "Submission details saved.",
       submitted: "Manuscript submitted to the editorial queue.",
       updated: "Submission status updated.",
       "asset-uploaded": "File uploaded successfully.",
@@ -173,7 +173,7 @@ const submissionFeedback: Localized<{
       "public-id-generation-failed":
         "A stable submission identifier could not be generated.",
       "submitted-locked":
-        "Submitted manuscripts are locked while they wait for editorial review.",
+        "Submitted manuscripts are locked while they wait for editorial screening.",
       "under-review-locked":
         "Manuscripts under review are locked until the editorial team requests changes or reaches a decision.",
       "accepted-locked":
@@ -182,20 +182,21 @@ const submissionFeedback: Localized<{
         "Rejected manuscripts remain archived in read-only form.",
       "not-editable": "This submission is not editable.",
       "invalid-draft-input":
-        "Please review the manuscript fields and provide valid draft data.",
+        "Please review the submission fields and provide valid metadata.",
       "missing-required-submission-fields":
-        "Complete the title, abstract, keywords and main content before submitting the manuscript.",
+        "Complete the title, abstract, keywords, language, and manuscript PDF before submitting.",
       "status-update-forbidden":
         "Only editors and administrators can update submission status.",
       "status-transition-not-allowed":
         "This status change is not allowed from the current state.",
-      "draft-create-failed": "Unable to create a draft right now.",
-      "draft-save-failed": "Unable to save the draft.",
+      "draft-create-failed": "Unable to open a submission record right now.",
+      "draft-save-failed": "Unable to save the submission details.",
       "draft-submit-failed": "Unable to submit the manuscript.",
       "status-update-failed": "Unable to update submission status.",
       "invalid-status": "Select a valid next status.",
       "invalid-public-id": "The submission identifier format is invalid.",
-      "invalid-manuscript-file": "Upload a PDF file for the manuscript.",
+      "invalid-manuscript-file":
+        "Upload a PDF file for the manuscript.",
       "invalid-source-file": "Upload a ZIP archive for the source package.",
       "upload-too-large": "The selected file exceeds the allowed size limit.",
       "request-too-large": "The request payload exceeds the accepted limit.",
@@ -227,24 +228,24 @@ const submissionFeedback: Localized<{
       "publication-update-failed": "Unable to update publication settings.",
       "review-closed":
         "Reviews can be submitted only while the manuscript is under review.",
-      "export-failed": "Unable to export the publication draft right now.",
+      "export-failed": "Unable to export the publication record right now.",
     },
     timelineEmpty:
       "No status events have been recorded yet. The submission remains in its current state.",
     timelineEmptyDraft:
-      "No status events have been recorded yet. The manuscript is still in draft.",
+      "No status events have been recorded yet. The submission is still in preparation.",
     versionLabels: {
-      "Draft Created": "Draft Created",
-      "Draft Save": "Draft Save",
-      "Revision Draft Save": "Revision Draft Save",
+      "Draft Created": "Submission Opened",
+      "Draft Save": "Submission Details Saved",
+      "Revision Draft Save": "Revision Details Saved",
       Submission: "Submission",
       "Revision Resubmission": "Revision Resubmission",
     },
   },
   zh: {
     notices: {
-      created: "草稿已创建。",
-      saved: "草稿已保存。",
+      created: "投稿记录已创建。",
+      saved: "投稿信息已保存。",
       submitted: "稿件已提交到编辑队列。",
       updated: "稿件状态已更新。",
       "asset-uploaded": "文件上传成功。",
@@ -258,17 +259,17 @@ const submissionFeedback: Localized<{
       "submission-not-found": "未找到对应稿件。",
       "asset-not-found": "未找到对应文件。",
       "public-id-generation-failed": "无法生成稳定的稿件编号。",
-      "submitted-locked": "稿件提交后，在编辑审阅期间作者无法继续修改。",
+      "submitted-locked": "稿件正式提交后，在编辑初筛期间作者无法继续修改。",
       "under-review-locked": "稿件审阅中，只有在编辑要求修改或给出决定后才会重新开放。",
       "accepted-locked": "已接收稿件在作者工作区中不可继续编辑。",
       "rejected-locked": "被拒稿件会以只读形式保留。",
       "not-editable": "当前稿件不可编辑。",
-      "invalid-draft-input": "请检查稿件字段并填写有效内容。",
-      "missing-required-submission-fields": "正式提交前请完善标题、摘要、关键词和正文。",
+      "invalid-draft-input": "请检查投稿字段并填写有效元数据。",
+      "missing-required-submission-fields": "正式提交前请完善标题、摘要、关键词、语言和稿件 PDF。",
       "status-update-forbidden": "只有编辑和管理员可以修改稿件状态。",
       "status-transition-not-allowed": "当前状态不允许执行这个变更。",
-      "draft-create-failed": "暂时无法创建草稿。",
-      "draft-save-failed": "暂时无法保存草稿。",
+      "draft-create-failed": "暂时无法创建投稿记录。",
+      "draft-save-failed": "暂时无法保存投稿信息。",
       "draft-submit-failed": "暂时无法提交稿件。",
       "status-update-failed": "暂时无法更新稿件状态。",
       "invalid-status": "请选择有效的下一状态。",
@@ -295,14 +296,14 @@ const submissionFeedback: Localized<{
       "publication-slug-taken": "这个出版 slug 已被使用，请更换一个。",
       "publication-update-failed": "暂时无法更新出版准备设置。",
       "review-closed": "只有在稿件处于审稿中时才能提交审稿意见。",
-      "export-failed": "暂时无法导出出版草稿。",
+      "export-failed": "暂时无法导出出版记录。",
     },
     timelineEmpty: "当前还没有状态事件记录，稿件会保持在现有状态。",
-    timelineEmptyDraft: "当前还没有状态事件记录，稿件仍处于草稿阶段。",
+    timelineEmptyDraft: "当前还没有状态事件记录，投稿仍处于准备阶段。",
     versionLabels: {
-      "Draft Created": "创建草稿",
-      "Draft Save": "保存草稿",
-      "Revision Draft Save": "修改稿保存",
+      "Draft Created": "创建投稿记录",
+      "Draft Save": "保存投稿信息",
+      "Revision Draft Save": "保存返修信息",
       Submission: "正式提交",
       "Revision Resubmission": "修改后再提交",
     },

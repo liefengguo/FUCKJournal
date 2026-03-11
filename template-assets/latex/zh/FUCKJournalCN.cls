@@ -74,7 +74,7 @@
   \fancyhead[L]{%
     \begin{tabular}{@{}l@{}}
       {\fontsize{11pt}{11pt}\selectfont\bfseries F.U.C.K Journal}\\
-      {\fontsize{8pt}{9pt}\selectfont 普遍性、复杂性与知识基础}
+      {\fontsize{8pt}{9pt}\selectfont 不确定性、复杂性与知识基础}
     \end{tabular}
   }%
   \fancyhead[R]{\fontsize{8pt}{9pt}\selectfont 中文投稿模板}%

@@ -5,10 +5,12 @@ import { setRequestLocale } from "next-intl/server";
 import { requireEditorUser } from "@/lib/auth-guards";
 import type { Locale } from "@/i18n/routing";
 import { LocaleLink } from "@/components/locale-link";
+import { ManuscriptDocumentView } from "@/components/submissions/manuscript-document-view";
 import { PrintOnLoad } from "@/components/submissions/print-on-load";
 import { PublicationProof } from "@/components/submissions/publication-proof";
 import { Button } from "@/components/ui/button";
 import { getSubmissionUiCopy } from "@/lib/submission-ui-copy";
+import { loadStoredManuscriptPreview } from "@/lib/manuscript-preview";
 import { getPublicationExportSource } from "@/lib/submissions";
 
 type PublicationPreviewPageProps = {
@@ -39,6 +41,15 @@ export default async function PublicationPreviewPage({
   if (!submission) {
     notFound();
   }
+
+  const manuscriptPreview = await loadStoredManuscriptPreview({
+    fileName: submission.manuscriptFileName,
+    mimeType: submission.manuscriptMimeType,
+    storageKey: submission.manuscriptStorageKey,
+    storageProvider: submission.manuscriptStorageProvider,
+    inlineUrl: `/api/submissions/${publicId}/assets/manuscript?inline=1`,
+    downloadUrl: `/api/submissions/${publicId}/assets/manuscript`,
+  });
 
   const copy = getSubmissionUiCopy(locale).publication;
   const printRequested = searchParams?.print === "1";
@@ -86,7 +97,27 @@ export default async function PublicationPreviewPage({
         </div>
       </section>
 
-      <PublicationProof locale={locale} source={submission} />
+      {manuscriptPreview ? (
+        <div className="mt-8 space-y-4">
+          <div className="space-y-2">
+            <p className="font-serif text-2xl leading-tight text-foreground">
+              {locale === "zh" ? "Manuscript / 全文" : "Manuscript / Full text"}
+            </p>
+            <p className="font-serif text-base leading-relaxed text-muted-foreground">
+              {locale === "zh"
+                ? manuscriptPreview.kind === "pdf"
+                  ? "当前预览直接读取作者上传的 PDF 稿件。"
+                  : "当前预览直接读取作者历史上传的 DOCX 稿件。新投稿现在只接收 PDF 稿件。"
+                : manuscriptPreview.kind === "pdf"
+                  ? "This preview is rendered directly from the author's uploaded PDF manuscript."
+                  : "This preview is rendered from a legacy DOCX manuscript. New submissions now accept PDF manuscripts only."}
+            </p>
+          </div>
+          <ManuscriptDocumentView locale={locale} preview={manuscriptPreview} />
+        </div>
+      ) : (
+        <PublicationProof locale={locale} source={submission} />
+      )}
     </div>
   );
 }

@@ -70,7 +70,7 @@ export default async function NewDraftPage({
               type="submit"
               size="lg"
               idleLabel={copy.submission.createDraftLabel}
-              pendingLabel={locale === "zh" ? "创建中..." : "Creating draft..."}
+              pendingLabel={locale === "zh" ? "创建投稿记录..." : "Opening submission..."}
             />
           </form>
         </CardContent>

@@ -2,7 +2,7 @@
 
 This package provides the English LaTeX submission template for **F.U.C.K Journal**.
 
-F.U.C.K = **Foundations of Universality, Complexity and Knowledge**
+F.U.C.K = **Foundations of Uncertainty, Complexity, and Knowledge**
 
 ## Files
 

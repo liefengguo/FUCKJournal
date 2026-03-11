@@ -15,10 +15,11 @@ import { FlashMessage } from "@/components/dashboard/flash-message";
 import { LocaleLink } from "@/components/locale-link";
 import { ReviewDecisionBadge } from "@/components/reviews/review-decision-badge";
 import { ReviewList } from "@/components/reviews/review-list";
+import { ManuscriptDocumentView } from "@/components/submissions/manuscript-document-view";
+import { SubmissionMetadataSummary } from "@/components/submissions/submission-metadata-summary";
 import { SubmissionFilePanel } from "@/components/submissions/submission-file-panel";
 import { PublicationStateBadge } from "@/components/submissions/publication-state-badge";
 import { SubmissionStatusBadge } from "@/components/submissions/submission-status-badge";
-import { SubmissionStructuredContent } from "@/components/submissions/submission-structured-content";
 import { SubmissionTimeline } from "@/components/submissions/submission-timeline";
 import { SubmissionVersionList } from "@/components/submissions/submission-version-list";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import type { Locale } from "@/i18n/routing";
 import { getSubmissionError, getSubmissionNotice } from "@/lib/feedback";
+import { loadStoredManuscriptPreview } from "@/lib/manuscript-preview";
 import { getPlatformCopy } from "@/lib/platform-copy";
 import {
   getEditorStatusTransitions,
@@ -100,6 +102,14 @@ export default async function EditorialSubmissionDetailPage({
     0,
   );
   const publicationState = getPublicationPipelineState(submission);
+  const manuscriptPreview = await loadStoredManuscriptPreview({
+    fileName: submission.manuscriptFileName,
+    mimeType: submission.manuscriptMimeType,
+    storageKey: submission.manuscriptStorageKey,
+    storageProvider: submission.manuscriptStorageProvider,
+    inlineUrl: `/api/submissions/${publicId}/assets/manuscript?inline=1`,
+    downloadUrl: `/api/submissions/${publicId}/assets/manuscript`,
+  });
 
   return (
     <DashboardShell
@@ -168,6 +178,14 @@ export default async function EditorialSubmissionDetailPage({
             </p>
           </CardHeader>
           <CardContent className="space-y-8">
+            {manuscriptPreview ? (
+              <ManuscriptDocumentView
+                locale={locale}
+                preview={manuscriptPreview}
+                showDownloadLink={false}
+              />
+            ) : null}
+
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <p className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
@@ -219,19 +237,29 @@ export default async function EditorialSubmissionDetailPage({
               </div>
             </div>
 
-            <SubmissionStructuredContent
+            <SubmissionMetadataSummary
               locale={locale}
-              title={submission.title}
-              byline={submission.author.name || submission.author.email}
-              manuscriptId={submission.publicId}
-              language={submission.manuscriptLanguage}
               abstract={submission.abstract}
               keywords={submission.keywords}
               coverLetter={submission.coverLetter}
-              introduction={submission.introduction}
-              mainContent={submission.mainContent}
-              conclusion={submission.conclusion}
-              references={submission.references}
+              details={[
+                {
+                  label: copy.submission.authorLabel,
+                  value: submission.author.name || submission.author.email,
+                },
+                {
+                  label: copy.submission.emailLabel,
+                  value: submission.author.email,
+                },
+                {
+                  label: copy.submission.languageLabel,
+                  value: submission.manuscriptLanguage,
+                },
+                {
+                  label: copy.submission.fileNameLabel,
+                  value: submission.manuscriptFileName,
+                },
+              ]}
             />
           </CardContent>
         </Card>
@@ -246,7 +274,11 @@ export default async function EditorialSubmissionDetailPage({
             </CardHeader>
             <CardContent className="space-y-5">
               {availableReviewers.length ? (
-                <form action={assignReviewerAction} className="space-y-4">
+                <form
+                  action={assignReviewerAction}
+                  className="space-y-4"
+                  data-testid="editor-assign-reviewer-form"
+                >
                   <input type="hidden" name="locale" value={locale} />
                   <input type="hidden" name="publicId" value={publicId} />
                   <div className="space-y-2">
@@ -255,6 +287,7 @@ export default async function EditorialSubmissionDetailPage({
                     </label>
                     <select
                       name="reviewerId"
+                      data-testid="editor-assign-reviewer-select"
                       className="h-11 w-full rounded-[24px] border border-border bg-background/70 px-4 font-sans text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       {availableReviewers.map((reviewer) => (
@@ -268,6 +301,7 @@ export default async function EditorialSubmissionDetailPage({
                     type="submit"
                     size="lg"
                     className="w-full"
+                    data-testid="editor-assign-reviewer-button"
                     idleLabel={uiCopy.editorialReview.assignLabel}
                     pendingLabel={uiCopy.editorialReview.assigningLabel}
                   />
@@ -397,7 +431,11 @@ export default async function EditorialSubmissionDetailPage({
             </CardHeader>
             <CardContent className="space-y-5">
               {transitions.length ? (
-                <form action={updateSubmissionStatusAction} className="space-y-5">
+                <form
+                  action={updateSubmissionStatusAction}
+                  className="space-y-5"
+                  data-testid="editor-status-form"
+                >
                   <input type="hidden" name="locale" value={locale} />
                   <input type="hidden" name="publicId" value={publicId} />
                   <input type="hidden" name="currentStatus" value={submission.status} />
@@ -408,6 +446,7 @@ export default async function EditorialSubmissionDetailPage({
                     <select
                       name="status"
                       defaultValue={transitions[0]}
+                      data-testid="editor-status-select"
                       className="h-11 w-full rounded-[24px] border border-border bg-background/70 px-4 font-sans text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       {transitions.map((status) => (
@@ -421,12 +460,17 @@ export default async function EditorialSubmissionDetailPage({
                     <label className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
                       {copy.submission.noteLabel}
                     </label>
-                    <Textarea name="note" className="min-h-[160px]" />
+                    <Textarea
+                      name="note"
+                      className="min-h-[160px]"
+                      data-testid="editor-status-note"
+                    />
                   </div>
                   <FormSubmitButton
                     type="submit"
                     size="lg"
                     className="w-full"
+                    data-testid="editor-status-button"
                     idleLabel={copy.submission.updateStatusLabel}
                     pendingLabel={locale === "zh" ? "更新中..." : "Updating status..."}
                   />
@@ -520,13 +564,6 @@ export default async function EditorialSubmissionDetailPage({
                     mimeType: submission.manuscriptMimeType,
                     sizeBytes: submission.manuscriptSizeBytes,
                     href: `/api/submissions/${publicId}/assets/manuscript`,
-                  },
-                  {
-                    kind: "source",
-                    fileName: submission.sourceArchiveFileName,
-                    mimeType: submission.sourceArchiveMimeType,
-                    sizeBytes: submission.sourceArchiveSizeBytes,
-                    href: `/api/submissions/${publicId}/assets/source`,
                   },
                 ]}
               />

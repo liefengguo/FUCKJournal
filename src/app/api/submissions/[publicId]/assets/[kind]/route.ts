@@ -53,18 +53,16 @@ export async function GET(request: Request, { params }: RouteContext) {
   }
 
   try {
-    const asset = await getSubmissionAssetForViewer(
-      session.user,
-      parsedPublicId.data,
-      params.kind as (typeof uploadKinds)[number],
-    );
+    const asset = await getSubmissionAssetForViewer(session.user, parsedPublicId.data);
 
     const file = await readStoredFile(asset.storageProvider, asset.storageKey);
+    const url = new URL(request.url);
+    const inlineRequested = url.searchParams.get("inline") === "1";
     const headers = new Headers();
     headers.set("Cache-Control", "no-store");
     headers.set(
       "Content-Disposition",
-      `attachment; filename="${encodeURIComponent(asset.fileName)}"`,
+      `${inlineRequested ? "inline" : "attachment"}; filename="${encodeURIComponent(asset.fileName)}"`,
     );
     headers.set("Content-Type", file.contentType ?? asset.mimeType);
 

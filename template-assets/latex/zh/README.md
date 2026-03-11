@@ -2,8 +2,8 @@
 
 这是 **F.U.C.K Journal** 的中文 LaTeX 投稿模板。
 
-F.U.C.K = **Foundations of Universality, Complexity and Knowledge**  
-中文可译为：**普遍性、复杂性与知识基础**
+F.U.C.K = **Foundations of Uncertainty, Complexity, and Knowledge**  
+中文可译为：**不确定性、复杂性与知识基础**
 
 ## 文件说明
 

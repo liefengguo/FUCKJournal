@@ -10,7 +10,7 @@ import { getSubmissionUiCopy } from "@/lib/submission-ui-copy";
 import { Button } from "@/components/ui/button";
 
 type SubmissionFileAsset = {
-  kind: "manuscript" | "source";
+  kind: "manuscript";
   fileName: string | null;
   mimeType: string | null;
   sizeBytes: number | null;
@@ -52,7 +52,7 @@ export function SubmissionFilePanel({
   const [pendingKind, setPendingKind] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  async function uploadFile(kind: "manuscript" | "source", formData: FormData) {
+  async function uploadFile(kind: "manuscript", formData: FormData) {
     if (!editable) {
       return;
     }
@@ -114,13 +114,15 @@ export function SubmissionFilePanel({
       {assets.map((asset) => {
         const isAssetPending = isPending && pendingKind === asset.kind;
         const message = messages[asset.kind];
-        const label =
-          asset.kind === "manuscript" ? copy.manuscriptLabel : copy.sourceLabel;
-        const hint =
-          asset.kind === "manuscript" ? copy.manuscriptHint : copy.sourceHint;
+        const label = copy.manuscriptLabel;
+        const hint = copy.manuscriptHint;
 
         return (
-          <div key={asset.kind} className="rounded-[24px] border border-border/60 px-5 py-5">
+          <div
+            key={asset.kind}
+            className="rounded-[24px] border border-border/60 px-5 py-5"
+            data-testid={`submission-file-panel-${asset.kind}`}
+          >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="space-y-2">
                 <p className="font-display text-2xl">{label}</p>
@@ -129,6 +131,7 @@ export function SubmissionFilePanel({
               {asset.fileName ? (
                 <a
                   href={asset.href}
+                  data-testid={`submission-file-download-${asset.kind}`}
                   className="font-sans text-xs uppercase tracking-[0.2em] text-foreground underline-offset-4 hover:underline"
                 >
                   {copy.downloadButton}
@@ -137,7 +140,7 @@ export function SubmissionFilePanel({
             </div>
 
             <div className="mt-4 rounded-[20px] border border-border/60 bg-background/60 px-4 py-4">
-              <p className="font-serif text-lg">
+              <p className="font-serif text-lg" data-testid={`submission-file-current-${asset.kind}`}>
                 {asset.fileName || copy.noFile}
               </p>
               {asset.fileName ? (
@@ -150,6 +153,7 @@ export function SubmissionFilePanel({
             {editable ? (
               <form
                 className="mt-4 space-y-3"
+                data-testid={`submission-file-upload-form-${asset.kind}`}
                 onSubmit={(event) => {
                   event.preventDefault();
                   const formData = new FormData(event.currentTarget);
@@ -160,8 +164,9 @@ export function SubmissionFilePanel({
                 <input
                   name="file"
                   type="file"
-                  accept={asset.kind === "manuscript" ? ".pdf,application/pdf" : ".zip,application/zip,application/x-zip-compressed"}
+                  accept=".pdf,application/pdf"
                   required
+                  data-testid={`submission-file-input-${asset.kind}`}
                   className="block w-full font-sans text-sm text-muted-foreground file:mr-4 file:rounded-full file:border-0 file:bg-secondary file:px-4 file:py-2 file:text-sm file:font-medium file:text-secondary-foreground"
                 />
                 <p className="font-serif text-base text-muted-foreground">
@@ -174,7 +179,12 @@ export function SubmissionFilePanel({
                     {message.text}
                   </p>
                 ) : null}
-                <Button type="submit" size="sm" disabled={isAssetPending}>
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={isAssetPending}
+                  data-testid={`submission-file-upload-button-${asset.kind}`}
+                >
                   {isAssetPending ? copy.uploadingButton : copy.uploadButton}
                 </Button>
               </form>

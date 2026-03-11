@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 
 import { AuthorCard } from "@/components/author-card";
+import { LocaleLink } from "@/components/locale-link";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Locale } from "@/i18n/routing";
 import { getCopy } from "@/lib/copy";
@@ -57,6 +59,25 @@ export default function CommunityPage({ params }: CommunityPageProps) {
             </CardContent>
           </Card>
         ))}
+      </div>
+      <div className="mt-14 paper-panel px-6 py-8 sm:px-10">
+        <p className="section-kicker">{copy.community.participationTitle}</p>
+        <h2 className="mt-3 font-display text-4xl">{copy.community.participationTitle}</h2>
+        <p className="mt-5 max-w-4xl font-serif text-xl leading-relaxed text-muted-foreground">
+          {copy.community.participationBody}
+        </p>
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <Button asChild size="lg">
+            <LocaleLink locale={locale} href="/submit">
+              {locale === "zh" ? "进入投稿" : "Submit a paper"}
+            </LocaleLink>
+          </Button>
+          <Button asChild variant="outline" size="lg">
+            <LocaleLink locale={locale} href="/governance">
+              {locale === "zh" ? "阅读治理说明" : "Read governance"}
+            </LocaleLink>
+          </Button>
+        </div>
       </div>
       <div className="mt-16 grid gap-6 lg:grid-cols-3">
         {contributors.map((contributor) => (

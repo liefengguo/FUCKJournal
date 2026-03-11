@@ -10,9 +10,10 @@ import { FlashMessage } from "@/components/dashboard/flash-message";
 import { LocaleLink } from "@/components/locale-link";
 import { PublicationAuditTrail } from "@/components/submissions/publication-audit-trail";
 import { PublicationExportPanel } from "@/components/submissions/publication-export-panel";
+import { ManuscriptDocumentView } from "@/components/submissions/manuscript-document-view";
+import { SubmissionMetadataSummary } from "@/components/submissions/submission-metadata-summary";
 import { PublicationStateBadge } from "@/components/submissions/publication-state-badge";
 import { SubmissionFilePanel } from "@/components/submissions/submission-file-panel";
-import { SubmissionStructuredContent } from "@/components/submissions/submission-structured-content";
 import { SubmissionTimeline } from "@/components/submissions/submission-timeline";
 import { SubmissionVersionList } from "@/components/submissions/submission-version-list";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { Locale } from "@/i18n/routing";
 import { getSubmissionError, getSubmissionNotice } from "@/lib/feedback";
+import { loadStoredManuscriptPreview } from "@/lib/manuscript-preview";
 import { getPlatformCopy } from "@/lib/platform-copy";
 import {
   getPublicationPipelineState,
@@ -74,6 +76,14 @@ export default async function PublicationDetailPage({
   const errorMessage = getSubmissionError(locale, searchParams?.error);
   const publicationState = getPublicationPipelineState(submission);
   const latestVersion = submission.versions[0]?.versionNumber ?? 1;
+  const manuscriptPreview = await loadStoredManuscriptPreview({
+    fileName: submission.manuscriptFileName,
+    mimeType: submission.manuscriptMimeType,
+    storageKey: submission.manuscriptStorageKey,
+    storageProvider: submission.manuscriptStorageProvider,
+    inlineUrl: `/api/submissions/${publicId}/assets/manuscript?inline=1`,
+    downloadUrl: `/api/submissions/${publicId}/assets/manuscript`,
+  });
   const tagValue = (
     submission.publicationTags.length
       ? submission.publicationTags
@@ -144,6 +154,14 @@ export default async function PublicationDetailPage({
             </p>
           </CardHeader>
           <CardContent className="space-y-8">
+            {manuscriptPreview ? (
+              <ManuscriptDocumentView
+                locale={locale}
+                preview={manuscriptPreview}
+                showDownloadLink={false}
+              />
+            ) : null}
+
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <p className="font-sans text-xs uppercase tracking-[0.22em] text-muted-foreground">
@@ -229,19 +247,29 @@ export default async function PublicationDetailPage({
               </div>
             </div>
 
-            <SubmissionStructuredContent
+            <SubmissionMetadataSummary
               locale={locale}
-              title={submission.publicationTitle || submission.title}
-              byline={submission.author.name || submission.author.email}
-              manuscriptId={submission.publicId}
-              language={submission.publicationLocale || submission.manuscriptLanguage}
               abstract={submission.abstract}
               keywords={submission.keywords}
               coverLetter={submission.coverLetter}
-              introduction={submission.introduction}
-              mainContent={submission.mainContent}
-              conclusion={submission.conclusion}
-              references={submission.references}
+              details={[
+                {
+                  label: copy.submission.authorLabel,
+                  value: submission.author.name || submission.author.email,
+                },
+                {
+                  label: copy.submission.emailLabel,
+                  value: submission.author.email,
+                },
+                {
+                  label: copy.submission.languageLabel,
+                  value: submission.publicationLocale || submission.manuscriptLanguage,
+                },
+                {
+                  label: copy.submission.fileNameLabel,
+                  value: submission.manuscriptFileName,
+                },
+              ]}
             />
           </CardContent>
         </Card>
@@ -470,13 +498,6 @@ export default async function PublicationDetailPage({
                     mimeType: submission.manuscriptMimeType,
                     sizeBytes: submission.manuscriptSizeBytes,
                     href: `/api/submissions/${publicId}/assets/manuscript`,
-                  },
-                  {
-                    kind: "source",
-                    fileName: submission.sourceArchiveFileName,
-                    mimeType: submission.sourceArchiveMimeType,
-                    sizeBytes: submission.sourceArchiveSizeBytes,
-                    href: `/api/submissions/${publicId}/assets/source`,
                   },
                 ]}
               />

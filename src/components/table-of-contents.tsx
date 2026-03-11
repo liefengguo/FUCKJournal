@@ -12,7 +12,7 @@ export function TableOfContents({ items, title }: TableOfContentsProps) {
   }
 
   return (
-    <aside className="top-28 rounded-[28px] border border-border bg-card/70 p-6 shadow-editorial lg:sticky">
+    <aside className="rounded-[28px] border border-border bg-card/70 p-6 shadow-editorial">
       <p className="font-sans text-xs uppercase tracking-[0.28em] text-muted-foreground">
         {title}
       </p>
@@ -22,7 +22,7 @@ export function TableOfContents({ items, title }: TableOfContentsProps) {
             key={item.id}
             href={`#${item.id}`}
             className={cn(
-              "block font-serif leading-relaxed text-muted-foreground transition-colors hover:text-foreground",
+              "block border-l border-transparent pl-3 font-serif leading-relaxed text-muted-foreground transition-colors hover:border-journal-red/40 hover:text-foreground dark:hover:border-journal-gold/40",
               item.level === 3 ? "pl-4 text-sm" : "text-base",
             )}
           >

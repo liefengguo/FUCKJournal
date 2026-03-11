@@ -140,15 +140,15 @@ const copy: Localized<PlatformCopy> = {
     submitPortal: {
       guestTitle: "Begin a submission",
       guestBody:
-        "Create an account to draft, revise and submit manuscripts through the journal platform. The public site remains open; the submission workflow now lives behind a private workspace.",
+        "Create an account to prepare a submission record, upload a review-ready PDF manuscript, and follow editorial decisions through the journal platform.",
       signInLabel: "Sign in",
       signUpLabel: "Create account",
       authNote:
-        "Use your account to draft structured submissions, upload manuscript files and follow editorial decisions in a private workspace.",
+        "Use your account to prepare metadata, upload the manuscript PDF, and track screening, peer review, revisions, and publication.",
       memberTitle: "Submission workspace",
       memberBody:
-        "Create a new draft, continue an existing manuscript, or move into the editorial queue if you are part of the journal staff.",
-      createDraftLabel: "Create draft",
+        "Start a new submission, continue one already in preparation, or move to the editorial desk if you are part of the journal staff.",
+      createDraftLabel: "Start submission",
       dashboardLabel: "Open dashboard",
       editorLabel: "Open editorial desk",
       signedInAs: "Signed in as",
@@ -156,7 +156,7 @@ const copy: Localized<PlatformCopy> = {
     signIn: {
       title: "Sign in",
       intro:
-        "Access your private workspace to draft, revise and submit manuscripts to F.U.C.K Journal.",
+        "Access your private workspace to prepare submissions, upload manuscript PDFs, and follow editorial decisions at F.U.C.K Journal.",
       submitLabel: "Sign in",
       alternateLabel: "Create an account",
       alternateHref: "/sign-up",
@@ -169,7 +169,7 @@ const copy: Localized<PlatformCopy> = {
     signUp: {
       title: "Create an account",
       intro:
-        "Open a contributor account to save drafts, return to revisions and submit your manuscript when it is ready.",
+        "Open a contributor account to prepare a submission, respond to revision decisions, and move the manuscript through review and publication.",
       submitLabel: "Create account",
       alternateLabel: "Sign in",
       alternateHref: "/sign-in",
@@ -183,18 +183,18 @@ const copy: Localized<PlatformCopy> = {
     dashboard: {
       title: "Contributor dashboard",
       intro:
-        "Manage your manuscript drafts, revisions and submission history without affecting the public journal site.",
+        "Manage submissions in preparation, revision requests, and editorial decisions without affecting the public journal site.",
       overviewTitle: "Overview",
       submissionsTitle: "Recent submissions",
       emptyTitle: "No submissions yet",
       emptyBody:
-        "Create a draft to begin your first manuscript. You can save revisions before sending it to the editorial queue.",
-      createDraftLabel: "Create draft",
+        "Start your first submission by entering metadata and uploading a review-ready PDF manuscript.",
+      createDraftLabel: "Start submission",
       viewAllLabel: "View all submissions",
-      newDraftTitle: "Start a new draft",
+      newDraftTitle: "Start a new submission",
       newDraftBody:
-        "A draft opens a private workspace for your title, abstract, keywords, structured manuscript sections and manuscript files.",
-      draftCountLabel: "Drafts",
+        "Each submission opens a private record for title, abstract, keywords, cover letter, manuscript language, and the final PDF file.",
+      draftCountLabel: "In preparation",
       submittedCountLabel: "Submitted",
       revisionCountLabel: "Revisions requested",
     },
@@ -230,14 +230,14 @@ const copy: Localized<PlatformCopy> = {
     submission: {
       submissionsTitle: "Submissions",
       submissionsIntro:
-        "Drafts remain private. Only submitted manuscripts enter the editorial queue.",
+        "Submissions remain private until you formally send them to the editorial desk.",
       detailTitle: "Submission detail",
-      editTitle: "Edit manuscript",
+      editTitle: "Prepare submission",
       editIntro:
-        "Develop the manuscript inside the journal template, upload supporting files and save durable version snapshots as the draft evolves.",
-      newTitle: "Create draft",
+        "Complete the metadata, attach the review-ready PDF manuscript, and submit the record when it is ready for editorial screening.",
+      newTitle: "Start submission",
       newIntro:
-        "Open a blank draft now. You will be redirected to the manuscript editor immediately after creation.",
+        "Open a blank submission record now. You will be redirected to the preparation form immediately after creation.",
       titleLabel: "Title",
       abstractLabel: "Abstract",
       coverLetterLabel: "Cover letter",
@@ -246,10 +246,10 @@ const copy: Localized<PlatformCopy> = {
       mimeTypeLabel: "MIME type",
       fileSizeLabel: "File size (bytes)",
       metadataNote:
-        "The submission workspace supports structured drafting together with storage-agnostic file handling for manuscript delivery.",
-      saveDraftLabel: "Save draft",
+        "The submission workspace is now PDF-first: metadata and manuscript delivery are handled here, while the paper layout stays in the uploaded file.",
+      saveDraftLabel: "Save submission details",
       submitManuscriptLabel: "Submit manuscript",
-      createDraftLabel: "Create draft",
+      createDraftLabel: "Start submission",
       backToDashboardLabel: "Back to dashboard",
       backToQueueLabel: "Back to editorial desk",
       noSubmissions: "No submissions have been created yet.",
@@ -268,22 +268,22 @@ const copy: Localized<PlatformCopy> = {
       statusActionHint:
         "Editors and administrators can change status, but manuscript fields remain read-only in the editorial interface.",
       editorReadonlyNote:
-        "The editorial desk can review structure, files, versions and internal notes, but it does not alter author manuscript content directly.",
+        "The editorial desk reviews metadata, manuscript files, reviewer input, and internal notes without rewriting the author's manuscript content directly.",
       draftGateTitle: "Editing permissions",
-      draftGateBody: "Drafts remain editable until the manuscript is submitted.",
+      draftGateBody: "Submissions in preparation remain editable until they are formally submitted.",
       reviseGateBody:
-        "Revision requests reopen the manuscript for author updates until it is submitted again.",
+        "Revision requests reopen the submission record so the author can replace the manuscript PDF and update metadata before resubmitting.",
       submittedGateBody:
-        "Submitted manuscripts are locked for authors while they wait for editorial review.",
+        "Submitted manuscripts are locked for authors while they wait for editorial screening.",
       underReviewGateBody:
-        "Manuscripts under review are locked for authors until the editorial team requests changes or records a decision.",
+        "Manuscripts in peer review are locked for authors until the editorial team requests changes or records a decision.",
       acceptedGateBody:
-        "Accepted manuscripts are locked. Any further editorial work should happen outside the author dashboard.",
+        "Accepted manuscripts are locked for authors. Production and publication work continue on the editorial side.",
       rejectedGateBody:
         "Rejected manuscripts remain archived in read-only form for reference.",
       notices: {
-        created: "Draft created.",
-        saved: "Draft saved.",
+        created: "Submission record created.",
+        saved: "Submission details saved.",
         submitted: "Manuscript submitted to the editorial queue.",
         updated: "Submission status updated.",
       },
@@ -293,15 +293,15 @@ const copy: Localized<PlatformCopy> = {
     submitPortal: {
       guestTitle: "开始投稿",
       guestBody:
-        "创建账户后，你可以在期刊平台内保存草稿、修改稿件并正式提交。公开网站保持不变，投稿流程现已进入私有工作区。",
+        "创建账户后，你可以在期刊平台内准备一条投稿记录、上传正式送审 PDF，并跟踪编辑与审稿决定。",
       signInLabel: "登录",
       signUpLabel: "注册账户",
       authNote:
-        "登录后可在私有工作区中撰写结构化稿件、上传文件，并跟踪编辑决定。",
+        "登录后可在私有工作区中填写投稿元数据、上传稿件 PDF，并跟踪初筛、外审、返修与出版状态。",
       memberTitle: "投稿工作区",
       memberBody:
-        "你可以新建草稿、继续编辑已有稿件；如果你属于编辑团队，也可以直接进入编辑台。",
-      createDraftLabel: "新建草稿",
+        "你可以开始新的投稿、继续处理准备中的稿件；如果你属于编辑团队，也可以直接进入编辑台。",
+      createDraftLabel: "开始投稿",
       dashboardLabel: "打开投稿后台",
       editorLabel: "打开编辑台",
       signedInAs: "当前身份",
@@ -309,7 +309,7 @@ const copy: Localized<PlatformCopy> = {
     signIn: {
       title: "登录",
       intro:
-        "进入私有工作区，起草、修改并向 F.U.C.K Journal 提交稿件。",
+        "进入私有工作区，准备投稿信息、上传稿件 PDF，并跟踪 F.U.C.K Journal 的编辑处理结果。",
       submitLabel: "登录",
       alternateLabel: "注册账户",
       alternateHref: "/sign-up",
@@ -322,7 +322,7 @@ const copy: Localized<PlatformCopy> = {
     signUp: {
       title: "注册账户",
       intro:
-        "创建投稿者账户后，你可以保存草稿、返回修改稿，并在准备完成后正式提交。",
+        "创建投稿者账户后，你可以准备投稿、响应返修，并把稿件推进到审稿与出版流程。",
       submitLabel: "创建账户",
       alternateLabel: "登录",
       alternateHref: "/sign-in",
@@ -336,18 +336,18 @@ const copy: Localized<PlatformCopy> = {
     dashboard: {
       title: "投稿者后台",
       intro:
-        "在不影响公开期刊页面的前提下，管理你的稿件草稿、修改稿与提交记录。",
+        "在不影响公开期刊页面的前提下，管理准备中的投稿、返修请求与编辑处理记录。",
       overviewTitle: "概览",
       submissionsTitle: "最近稿件",
       emptyTitle: "还没有投稿",
       emptyBody:
-        "先新建一个草稿，再逐步完善标题、摘要和稿件信息，准备好后再提交到编辑队列。",
-      createDraftLabel: "新建草稿",
+        "先开始一条投稿，填写标题、摘要与关键词，再上传送审 PDF 后提交给编辑部。",
+      createDraftLabel: "开始投稿",
       viewAllLabel: "查看全部稿件",
-      newDraftTitle: "新建草稿",
+      newDraftTitle: "开始新的投稿",
       newDraftBody:
-        "草稿会为标题、摘要、关键词、结构化正文与稿件文件打开一个私有工作区。",
-      draftCountLabel: "草稿",
+        "每条投稿都会生成一条私有记录，用来管理标题、摘要、关键词、附信、稿件语言与正式 PDF 文件。",
+      draftCountLabel: "准备中",
       submittedCountLabel: "已提交",
       revisionCountLabel: "需修改",
     },
@@ -381,16 +381,16 @@ const copy: Localized<PlatformCopy> = {
       completedCountLabel: "已完成",
     },
     submission: {
-      submissionsTitle: "稿件",
+      submissionsTitle: "投稿",
       submissionsIntro:
-        "草稿仅作者本人可见；只有正式提交后才会进入编辑队列。",
-      detailTitle: "稿件详情",
-      editTitle: "编辑稿件",
+        "投稿记录在正式提交前仅作者本人可见；只有送出后才会进入编辑队列。",
+      detailTitle: "投稿详情",
+      editTitle: "准备投稿",
       editIntro:
-        "在期刊模板内继续写作、上传文件，并随着草稿推进保存可追溯的版本快照。",
-      newTitle: "新建草稿",
+        "填写投稿元数据、上传正式送审 PDF，并在准备完成后送交编辑初筛。",
+      newTitle: "开始投稿",
       newIntro:
-        "现在即可创建空白草稿。创建成功后会立刻跳转到稿件编辑页。",
+        "现在即可创建一条空白投稿记录。创建成功后会立刻跳转到投稿准备页。",
       titleLabel: "标题",
       abstractLabel: "摘要",
       coverLetterLabel: "附信",
@@ -399,11 +399,11 @@ const copy: Localized<PlatformCopy> = {
       mimeTypeLabel: "MIME 类型",
       fileSizeLabel: "文件大小（字节）",
       metadataNote:
-        "投稿工作区支持结构化写作，也支持与具体存储服务解耦的稿件文件处理。",
-      saveDraftLabel: "保存草稿",
+        "投稿工作区现在以 PDF 为中心：这里处理元数据与文件交付，论文版式以作者上传的正式稿为准。",
+      saveDraftLabel: "保存投稿信息",
       submitManuscriptLabel: "正式提交",
-      createDraftLabel: "新建草稿",
-      backToDashboardLabel: "返回后台",
+      createDraftLabel: "开始投稿",
+      backToDashboardLabel: "返回投稿后台",
       backToQueueLabel: "返回编辑台",
       noSubmissions: "目前还没有创建任何稿件。",
       statusHistoryTitle: "状态记录",
@@ -420,17 +420,17 @@ const copy: Localized<PlatformCopy> = {
       updateStatusLabel: "更新状态",
       statusActionHint:
         "编辑和管理员可以修改状态，但在编辑台中不能修改作者稿件内容。",
-      editorReadonlyNote: "编辑台可以查看结构、文件、版本和内部备注，但不会直接修改作者稿件内容。",
+      editorReadonlyNote: "编辑台查看的是投稿元数据、稿件文件、审稿意见与内部备注，不会直接在平台内重写作者的论文正文。",
       draftGateTitle: "编辑权限",
-      draftGateBody: "草稿在正式提交前可持续编辑。",
-      reviseGateBody: "当编辑要求修改后，作者可以重新编辑，直到再次提交为止。",
-      submittedGateBody: "稿件一旦提交，作者在编辑团队处理期间无法继续修改。",
-      underReviewGateBody: "审阅中的稿件会保持锁定，直到编辑要求修改或记录最终决定。",
-      acceptedGateBody: "已接收稿件保持锁定。后续编辑工作应在作者后台之外进行。",
+      draftGateBody: "准备中的投稿在正式提交前可持续编辑。",
+      reviseGateBody: "返修请求会重新开放投稿记录，作者可替换 PDF 并更新元数据后再次提交。",
+      submittedGateBody: "正式提交后的稿件会先进入编辑初筛，期间作者无法修改。",
+      underReviewGateBody: "外审中的稿件会持续锁定，直到编辑要求返修或记录决定。",
+      acceptedGateBody: "已接收稿件会锁定，后续生产与出版工作在编辑端继续进行。",
       rejectedGateBody: "被拒稿件会以只读方式保留，供作者后续参考。",
       notices: {
-        created: "草稿已创建。",
-        saved: "草稿已保存。",
+        created: "投稿记录已创建。",
+        saved: "投稿信息已保存。",
         submitted: "稿件已提交到编辑队列。",
         updated: "稿件状态已更新。",
       },

@@ -186,8 +186,8 @@ export default async function SubmissionsPage({
               <p className="mt-3 font-serif text-lg text-muted-foreground">
                 {hasActiveFilters
                   ? locale === "zh"
-                    ? "可以调整搜索词或状态筛选，或者新建一篇草稿。"
-                    : "Adjust the query or status filter, or start a new draft."
+                    ? "可以调整搜索词或状态筛选，或者开始一条新的投稿。"
+                    : "Adjust the query or status filter, or start a new submission."
                   : copy.submission.noSubmissions}
               </p>
               <div className="mt-5">

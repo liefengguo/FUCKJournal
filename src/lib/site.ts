@@ -3,9 +3,9 @@ import type { Locale } from "@/i18n/routing";
 export const siteConfig = {
   name: "F.U.C.K Journal",
   shortName: "F.U.C.K",
-  fullName: "Foundations of Universality, Complexity and Knowledge",
+  fullName: "Foundations of Uncertainty, Complexity, and Knowledge",
   description:
-    "F.U.C.K Journal is a bilingual interdisciplinary publication on universality, complexity, knowledge, systems, culture, uncertainty and human meaning.",
+    "F.U.C.K Journal is a bilingual editorial journal for papers, observations, and original viewpoints shaped by transparent rules, public accountability, and serious reading.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://fuckjournal.org",
   email: "guoliefeng@hotmail.com",
   social: {
@@ -16,8 +16,8 @@ export const siteConfig = {
 } as const;
 
 export const brandSubtitle: Record<Locale, string> = {
-  en: "Foundations of Universality, Complexity and Knowledge",
-  zh: "普遍性、复杂性与知识基础",
+  en: "Foundations of Uncertainty, Complexity, and Knowledge",
+  zh: "不确定性、复杂性与知识基础",
 };
 
 export const brandMeanings: Record<
@@ -26,13 +26,13 @@ export const brandMeanings: Record<
 > = {
   en: [
     { letter: "F", label: "Foundations" },
-    { letter: "U", label: "Universality" },
+    { letter: "U", label: "Uncertainty" },
     { letter: "C", label: "Complexity" },
     { letter: "K", label: "Knowledge" },
   ],
   zh: [
     { letter: "F", label: "基础" },
-    { letter: "U", label: "普遍性" },
+    { letter: "U", label: "不确定性" },
     { letter: "C", label: "复杂性" },
     { letter: "K", label: "知识" },
   ],
@@ -42,6 +42,8 @@ export const navigation = [
   { key: "home", href: "/" },
   { key: "articles", href: "/articles" },
   { key: "manifesto", href: "/manifesto" },
+  { key: "protocol", href: "/protocol" },
+  { key: "governance", href: "/governance" },
   { key: "submit", href: "/submit" },
   { key: "community", href: "/community" },
   { key: "about", href: "/about" },

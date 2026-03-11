@@ -73,7 +73,7 @@
   \fancyhead[L]{%
     \begin{tabular}{@{}l@{}}
       {\fontsize{11pt}{11pt}\selectfont\bfseries F.U.C.K Journal}\\
-      {\fontsize{8pt}{9pt}\selectfont Foundations of Universality, Complexity and Knowledge}
+      {\fontsize{8pt}{9pt}\selectfont Foundations of Uncertainty, Complexity, and Knowledge}
     \end{tabular}
   }%
   \fancyhead[R]{\fontsize{8pt}{9pt}\selectfont Manuscript Template}%

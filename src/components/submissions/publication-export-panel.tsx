@@ -69,7 +69,7 @@ export function PublicationExportPanel({
     json: null,
   });
 
-  async function exportDraft(format: ExportFormat) {
+  async function exportRecord(format: ExportFormat) {
     setActiveFormat(format);
     setMessages((current) => ({ ...current, [format]: null }));
 
@@ -98,8 +98,8 @@ export function PublicationExportPanel({
       const blob = await response.blob();
       const fallbackName =
         format === "markdown"
-          ? `${publicId.toLowerCase()}-draft.md`
-          : `${publicId.toLowerCase()}-draft.json`;
+          ? `${publicId.toLowerCase()}-record.md`
+          : `${publicId.toLowerCase()}-record.json`;
       const fileName = getDownloadName(response, fallbackName);
       triggerDownload(blob, fileName);
 
@@ -173,7 +173,8 @@ export function PublicationExportPanel({
           <Button
             size="sm"
             disabled={activeFormat !== null}
-            onClick={() => void exportDraft("markdown")}
+            data-testid="publication-export-markdown"
+            onClick={() => void exportRecord("markdown")}
           >
             {activeFormat === "markdown"
               ? `${copy.exportMarkdownLabel}...`
@@ -205,7 +206,8 @@ export function PublicationExportPanel({
             variant="outline"
             size="sm"
             disabled={activeFormat !== null}
-            onClick={() => void exportDraft("json")}
+            data-testid="publication-export-json"
+            onClick={() => void exportRecord("json")}
           >
             {activeFormat === "json"
               ? `${copy.exportJsonLabel}...`

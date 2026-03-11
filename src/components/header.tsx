@@ -27,13 +27,13 @@ export async function Header({ locale }: HeaderProps) {
             <Wordmark locale={locale} size="header" showSubtitle />
           </LocaleLink>
         </div>
-        <nav className="hidden items-center justify-center gap-8 md:flex">
+        <nav className="hidden items-center justify-center gap-5 lg:flex xl:gap-6">
           {items.map((item) => (
             <LocaleLink
               key={item.href}
               locale={locale}
               href={item.href}
-              className="font-sans text-sm uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-foreground"
+              className="font-sans text-xs uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-foreground xl:text-sm"
             >
               {item.label}
             </LocaleLink>
