@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import Image from "next/image";
+import { unstable_noStore as noStore } from "next/cache";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { ArticleCard } from "@/components/article-card";
@@ -39,6 +40,7 @@ export async function generateMetadata({
 export default async function HomePage({ params }: HomePageProps) {
   const { locale } = params;
 
+  noStore();
   setRequestLocale(locale);
 
   const copy = getCopy(locale);

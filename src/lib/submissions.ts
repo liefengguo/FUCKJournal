@@ -1334,63 +1334,85 @@ export async function getPublishedSubmissionBySlug(
   slug: string,
   locale?: string | null,
 ): Promise<PublicationExportSource | null> {
-  return db.submission.findFirst({
-    where: {
-      publicationSlug: slug,
-      status: "ACCEPTED",
-      isPublicationReady: true,
-      publishedAt: {
-        not: null,
+  try {
+    return await db.submission.findFirst({
+      where: {
+        publicationSlug: slug,
+        status: "ACCEPTED",
+        isPublicationReady: true,
+        publishedAt: {
+          not: null,
+        },
+        ...(locale
+          ? {
+              OR: [
+                { publicationLocale: locale },
+                {
+                  publicationLocale: null,
+                  manuscriptLanguage: locale,
+                },
+                {
+                  publicationLocale: null,
+                  manuscriptLanguage: "bilingual",
+                },
+              ],
+            }
+          : {}),
       },
-      ...(locale
-        ? {
-            OR: [
-              { publicationLocale: locale },
-              {
-                publicationLocale: null,
-                manuscriptLanguage: locale,
-              },
-              {
-                publicationLocale: null,
-                manuscriptLanguage: "bilingual",
-              },
-            ],
-          }
-        : {}),
-    },
-    select: publicationExportSelect,
-  });
+      select: publicationExportSelect,
+    });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      (error.code === "P2021" || error.code === "P2022")
+    ) {
+      return null;
+    }
+
+    throw error;
+  }
 }
 
 export async function listPublishedSubmissionSummaries(
   locale?: string | null,
 ): Promise<PublishedSubmissionListItem[]> {
-  return db.submission.findMany({
-    where: {
-      status: "ACCEPTED",
-      isPublicationReady: true,
-      publishedAt: {
-        not: null,
+  try {
+    return await db.submission.findMany({
+      where: {
+        status: "ACCEPTED",
+        isPublicationReady: true,
+        publishedAt: {
+          not: null,
+        },
+        ...(locale
+          ? {
+              OR: [
+                { publicationLocale: locale },
+                {
+                  publicationLocale: null,
+                  manuscriptLanguage: locale,
+                },
+                {
+                  publicationLocale: null,
+                  manuscriptLanguage: "bilingual",
+                },
+              ],
+            }
+          : {}),
       },
-      ...(locale
-        ? {
-            OR: [
-              { publicationLocale: locale },
-              {
-                publicationLocale: null,
-                manuscriptLanguage: locale,
-              },
-              {
-                publicationLocale: null,
-                manuscriptLanguage: "bilingual",
-              },
-            ],
-          }
-        : {}),
-    },
-    select: publishedSubmissionListSelect,
-    orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
-  });
+      select: publishedSubmissionListSelect,
+      orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
+    });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      (error.code === "P2021" || error.code === "P2022")
+    ) {
+      return [];
+    }
+
+    throw error;
+  }
 }
 
 export async function listAvailableReviewers() {
